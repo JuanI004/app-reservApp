@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Button from "../components/ui/Button";
-import Input from "../components/ui/Input";
-import { Label } from "../components/ui/Label";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+import { Label } from "../../components/ui/Label";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
@@ -16,8 +16,8 @@ const Auth = () => {
   });
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center bg-secondary/30">
-      <main className="w-full p-10 max-w-md rounded-lg shadow-lg">
+    <div className="min-h-screen pt-[76px] bg-gray-200 flex items-center justify-center bg-secondary/30">
+      <main className="w-full p-10 bg-white max-w-md rounded-lg shadow-lg">
         <div className="mb-6 ">
           <h1 className="text-2xl font-bold text-black">Iniciar Sesión</h1>
           <p className="text-sm  text-gray-400">
