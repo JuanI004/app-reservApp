@@ -72,7 +72,7 @@ const Auth = () => {
           phone: formData.phone,
           rol: formData.rol,
         },
-        emailRedirectTo: "http://localhost:3000/login",
+        emailRedirectTo: "http://localhost:3000/auth/verificacion",
       },
     });
 
@@ -126,13 +126,13 @@ const Auth = () => {
                 <button
                   type="button"
                   className={`py-2 px-4 rounded-lg border cursor-pointer ${
-                    formData.rol === "usuario"
+                    formData.rol === "user"
                       ? "bg-[#2563EB] text-white border-[#2563EB]"
                       : "bg-white text-black border-gray-300"
                   }`}
                   onClick={() => {
                     setMensaje({ ...mensaje, errorRol: null });
-                    setFormData({ ...formData, rol: "usuario" });
+                    setFormData({ ...formData, rol: "user" });
                   }}
                 >
                   Usuario
@@ -140,13 +140,13 @@ const Auth = () => {
                 <button
                   type="button"
                   className={`py-2 px-4 rounded-lg border cursor-pointer ${
-                    formData.rol === "dueño"
+                    formData.rol === "owner"
                       ? "bg-[#2563EB] text-white border-[#2563EB]"
                       : "bg-white text-black border-gray-300"
                   }`}
                   onClick={() => {
                     setMensaje({ ...mensaje, errorRol: null });
-                    setFormData({ ...formData, rol: "dueño" });
+                    setFormData({ ...formData, rol: "owner" });
                   }}
                 >
                   Dueño de negocio

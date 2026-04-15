@@ -12,7 +12,15 @@ export default function AuthCallback() {
         router.push("/");
         return;
       }
-      router.push("/crear-cuenta/personaje");
+      const rol = data.session.user?.user_metadata?.rol;
+
+      if (rol === "owner") {
+        router.push("/crear-cuenta/owner");
+      } else if (rol === "user") {
+        router.push("/crear-cuenta/user");
+      } else {
+        router.push("/");
+      }
     };
     handleCallback();
   }, [router]);
