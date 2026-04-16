@@ -4,6 +4,12 @@ const Input = React.forwardRef(function Input(
   { className = null, type = "text", ...props },
   ref,
 ) {
+  const inputProps = { ...props };
+
+  if ("value" in inputProps && inputProps.value == null) {
+    inputProps.value = "";
+  }
+
   return (
     <input
       ref={ref}
@@ -22,7 +28,7 @@ const Input = React.forwardRef(function Input(
         placeholder:text-gray-400
         ${className}
       `}
-      {...props}
+      {...inputProps}
     />
   );
 });

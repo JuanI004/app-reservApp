@@ -61,7 +61,7 @@ const Auth = () => {
     let nomTabla = "";
 
     if (data.session.user?.user_metadata?.rol === "owner") {
-      nomTabla = "Dueños";
+      nomTabla = "Duenos";
     } else if (data.session.user?.user_metadata?.rol === "user") {
       nomTabla = "Clientes";
     }

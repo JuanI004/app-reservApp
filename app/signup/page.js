@@ -55,38 +55,38 @@ const Auth = () => {
   }
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setMensaje({});
+    e.preventDefault();
+    setMensaje({});
 
-  if (!validarForm()) return;
+    if (!validarForm()) return;
 
-  setLoading(true);
+    setLoading(true);
 
-  const { data, error } = await supabase.auth.signUp({
-    email: formData.email,
-    password: formData.password,
-    options: {
-      data: {
-        full_name: formData.fullName,
-        phone: formData.phone,
-        rol: formData.rol,
+    const { data, error } = await supabase.auth.signUp({
+      email: formData.email,
+      password: formData.password,
+      options: {
+        data: {
+          full_name: formData.fullName,
+          phone: formData.phone,
+          rol: formData.rol,
+        },
+        emailRedirectTo: "http://localhost:3000/auth/verificacion",
       },
-      emailRedirectTo: "http://localhost:3000/auth/verificacion",
-    },
-  });
+    });
 
-  if (error) {
-    setMensaje({ errorGeneral: error.message });
+    if (error) {
+      setMensaje({ errorGeneral: error?.message });
+      setLoading(false);
+      return;
+    }
+
+    setMensaje({
+      success: "¡Cuenta creada! Revisá tu correo para confirmar tu cuenta.",
+    });
+
     setLoading(false);
-    return;
-  }
-
-  setMensaje({
-    success: "¡Cuenta creada! Revisá tu correo para confirmar tu cuenta.",
-  });
-
-  setLoading(false);
-};
+  };
 
   return (
     <div className="min-h-screen pt-[76px] bg-gray-200 flex items-center justify-center bg-secondary/30">
