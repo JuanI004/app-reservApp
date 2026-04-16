@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Pag1 from "../../../components/crearNegocio/Pag1";
 import Pag2 from "../../../components/crearNegocio/Pag2";
+import { supabase } from "../../../lib/supabase";
 
 export default function CrearCuentaDueño() {
   const [page, setPage] = useState(1);
@@ -17,10 +18,38 @@ export default function CrearCuentaDueño() {
   function handleNextPag(data) {
     setInfo({ ...info, ...data });
     setPage(page + 1);
+    if (page === 2) {
+      handleSubmit();
+    }
   }
 
-  function handleSubmit() {
+  /*function handleSubmit() {
     console.log(info);
+  }*/
+
+  async function handleSubmit() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      console.error("No hay usuario");
+      return;
+    }
+
+    const { error } = await supabase.from("Negocios").insert([
+      {
+        user_id: user.id,
+        nombre: info.nombre,
+        telefono: info.telefono,
+        direccion: info.direccion,
+      },
+    ]);
+
+    if (error) {
+      console.error("Error completo:", error);
+      console.error("Mensaje:", error.message);
+    }
   }
 
   return (
@@ -47,6 +76,7 @@ export default function CrearCuentaDueño() {
             setInfo={setInfo}
             nextPage={() => handleNextPag(info)}
             prevPage={() => setPage(page - 1)}
+            onSubmit={handleSubmit}
           />
         )}
       </main>

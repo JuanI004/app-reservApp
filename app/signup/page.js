@@ -55,41 +55,38 @@ const Auth = () => {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setMensaje({});
+  e.preventDefault();
+  setMensaje({});
 
-    if (!validarForm()) {
-      return;
-    }
+  if (!validarForm()) return;
 
-    setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
-      email: formData.email,
-      password: formData.password,
-      options: {
-        data: {
-          full_name: formData.fullName,
-          phone: formData.phone,
-          rol: formData.rol,
-        },
-        emailRedirectTo: "http://localhost:3000/auth/verificacion",
+  setLoading(true);
+
+  const { data, error } = await supabase.auth.signUp({
+    email: formData.email,
+    password: formData.password,
+    options: {
+      data: {
+        full_name: formData.fullName,
+        phone: formData.phone,
+        rol: formData.rol,
       },
-    });
+      emailRedirectTo: "http://localhost:3000/auth/verificacion",
+    },
+  });
 
-    if (!error && data.user && data.user.identities?.length === 0) {
-      setMensaje({ errorGeneral: "Ya existe una cuenta con ese correo." });
-      return;
-    }
+  if (error) {
+    setMensaje({ errorGeneral: error.message });
     setLoading(false);
+    return;
+  }
 
-    if (error) {
-      setMensaje({ errorGeneral: error.message });
-    } else {
-      setMensaje({
-        success: "¡Cuenta creada! Revisá tu correo para confirmar tu cuenta.",
-      });
-    }
-  };
+  setMensaje({
+    success: "¡Cuenta creada! Revisá tu correo para confirmar tu cuenta.",
+  });
+
+  setLoading(false);
+};
 
   return (
     <div className="min-h-screen pt-[76px] bg-gray-200 flex items-center justify-center bg-secondary/30">
@@ -223,6 +220,7 @@ const Auth = () => {
             <Button
               type="submit"
               className="mt-2 w-full cursor-pointer bg-[#2563EB] text-white py-2 rounded-lg hover:bg-[#1E40AF] transition"
+              onSubmit={handleSubmit}
             >
               Crear cuenta
             </Button>
