@@ -28,7 +28,7 @@ export default function Pag1({ nextPage, info, setInfo }) {
     }
   }
   return (
-    <div className="w-full h-full flex items-center ">
+    <div className="w-full h-full flex items-center z-10">
       <form className="w-full" onSubmit={handleSubmit}>
         <h2 className="text-xl text-gray-600 font-bold mb-4">
           Paso 1: Información del negocio
