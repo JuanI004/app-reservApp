@@ -5,13 +5,13 @@ import CrearNegocio from "../crearNegocio/CrearNegocio";
 import Button from "../ui/Button";
 import { useState } from "react";
 import { supabase } from "../../lib/supabase";
+import NegociosOwner from "../NegociosOwner";
 
 
 
 export default function HomeOwner() {
     const [creando, setCreando] = useState(false);
     const [info, setInfo] = useState({
-        
     negocio: {
       nombre: "",
       telefono: "",
@@ -103,6 +103,7 @@ export default function HomeOwner() {
         }} className="mt-4 text-black">
             Crear nuevo negocio
         </Button>
+        <NegociosOwner />
         </div>
         {creando && (
             <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
@@ -114,8 +115,9 @@ export default function HomeOwner() {
                     handleSubmit={handleSubmitNegocio}
                 />
                 </div>
-            </div>
+        </div>
         )}
+        
     </>
   );
 }

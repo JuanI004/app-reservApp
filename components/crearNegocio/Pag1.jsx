@@ -11,10 +11,10 @@ export default function Pag1({ nextPage, info, setInfo }) {
 
   function validarForm() {
     const newErrores = {};
-    if (!info.nombre?.trim()) {
+    if (!info.negocio.nombre?.trim()) {
       newErrores.errorNombre = "El nombre del negocio es obligatorio";
     }
-    if (!info.telefono?.trim()) {
+    if (!info.negocio.telefono?.trim()) {
       newErrores.errorTelefono = "El teléfono es obligatorio";
     }
     setMensaje(newErrores);
@@ -39,8 +39,11 @@ export default function Pag1({ nextPage, info, setInfo }) {
             <Input
               id="nombre"
               placeholder="Nombre del negocio"
-              value={info.nombre}
-              onChange={(e) => setInfo({ ...info, nombre: e.target.value })}
+              value={info.negocio.nombre}
+              onChange={(e) => setInfo((prev) => ({ ...info, negocio: {
+                ...prev.negocio,
+                nombre: e.target.value 
+              } }))}
             />
             {mensaje.errorNombre && (
               <p className="p-2 bg-[#ef44443f] rounded-lg text-red-600 border border-red-600 text-sm mt-1">
@@ -54,8 +57,11 @@ export default function Pag1({ nextPage, info, setInfo }) {
             <Input
               id="direccion"
               placeholder="Dirección del negocio"
-              value={info.direccion}
-              onChange={(e) => setInfo({ ...info, direccion: e.target.value })}
+              value={info.negocio.direccion}
+              onChange={(e) => setInfo((prev) => ({ ...info, negocio: {
+                ...prev.negocio,
+                direccion: e.target.value
+              } }))}
             />
           </div>
           <div className="space-y-2 mt-4">
@@ -63,8 +69,11 @@ export default function Pag1({ nextPage, info, setInfo }) {
             <Input
               id="telefono"
               placeholder="Número de teléfono"
-              value={info.telefono}
-              onChange={(e) => setInfo({ ...info, telefono: e.target.value })}
+              value={info.negocio.telefono}
+              onChange={(e) => setInfo((prev) => ({ ...info, negocio: {
+                ...prev.negocio,
+                telefono: e.target.value
+              } }))}
             />
             {mensaje.errorTelefono && (
               <p className="p-2 bg-[#ef44443f] rounded-lg text-red-600 border border-red-600 text-sm mt-1">
