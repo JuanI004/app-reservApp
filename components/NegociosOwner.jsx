@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import Link from "next/link";
 
 export default function NegociosOwner() {
   const [negocios, setNegocios] = useState([]);
@@ -50,30 +51,32 @@ export default function NegociosOwner() {
   return (
     <div className="grid gap-4 mt-6">
       {negocios.map((negocio) => (
-        <div
-          key={negocio.idNegocio}
-          className="p-4 bg-white rounded-lg shadow-md flex gap-4 items-center"
-        >
-          {negocio.image_url && (
-            <img
-              src={negocio.image_url}
-              alt={negocio.nombre}
-              className="w-20 h-20 object-cover rounded-md"
-            />
-          )}
+        <Link href={`/owner/negocio/${negocio.idNegocio}`} key={negocio.idNegocio}>
+          <div
+            key={negocio.idNegocio}
+            className="p-4 bg-white rounded-lg shadow-md flex gap-4 items-center"
+          >
+            {negocio.image_url && (
+              <img
+                src={negocio.image_url}
+                alt={negocio.nombre}
+                className="w-20 h-20 object-cover rounded-md"
+              />
+            )}
 
-          <div>
-            <h2 className="text-lg font-bold text-black">
-              {negocio.nombre || "Sin nombre"}
-            </h2>
-            <p className="text-gray-500">
-              {negocio.direccion || negocio.Ubicacion}
-            </p>
-            <p className="text-sm text-gray-400">
-              {negocio.telefono || "Sin teléfono"}
-            </p>
+            <div>
+              <h2 className="text-lg font-bold text-black">
+                {negocio.nombre || "Sin nombre"}
+              </h2>
+              <p className="text-gray-500">
+                {negocio.direccion || negocio.Ubicacion}
+              </p>
+              <p className="text-sm text-gray-400">
+                {negocio.telefono || "Sin teléfono"}
+              </p>
+            </div>
           </div>
-        </div>
+        </Link>
       ))}
     </div>
   );

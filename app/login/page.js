@@ -85,7 +85,7 @@ const Auth = () => {
       setMensaje({ errorGeneral: error.message });
     } else {
       setMensaje({ exito: "¡Sesión iniciada! Bienvenido de nuevo." });
-      router.push("/");
+      router.push("/Home");
     }
   }
 
