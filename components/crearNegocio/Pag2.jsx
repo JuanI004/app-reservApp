@@ -5,15 +5,18 @@ import Button from "../ui/Button";
 import { useState } from "react";
 
 export default function Pag2({ info, setInfo, prevPage, nextPage }) {
-  const [preview, setPreview] = useState(info.objectUrl || null);
+  const [preview, setPreview] = useState(info?.objectUrl || null);
   const [mensaje, setMensaje] = useState({});
 
   function handleFileChange(e) {
     const file = e.target.files[0];
     if (!file) return;
     const objectUrl = URL.createObjectURL(file);
-    setInfo((prev) => ({ ...prev, negocio: { ...prev.negocio, image: file, objectUrl: objectUrl } }));
-    
+    setInfo((prev) => ({
+      ...prev,
+      negocio: { ...prev.negocio, image: file, objectUrl: objectUrl },
+    }));
+
     setPreview(objectUrl);
     setMensaje((prev) => ({ ...prev, errorImagen: null }));
   }

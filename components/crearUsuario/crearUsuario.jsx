@@ -10,27 +10,44 @@ export default function CrearUsuario({
   handleSubmit,
   final = false,
 }) {
+  const usuarioInfo = info?.usuario ?? info ?? {};
   const [mensaje, setMensaje] = useState({});
-  const [preview, setPreview] = useState(info?.objectUrl || null);
+  const [preview, setPreview] = useState(usuarioInfo?.objectUrl || null);
+
+  function updateUsuarioInfo(patch) {
+    setInfo((prev) => {
+      if (prev?.usuario) {
+        return {
+          ...prev,
+          usuario: { ...prev.usuario, ...patch },
+        };
+      }
+
+      return {
+        ...prev,
+        ...patch,
+      };
+    });
+  }
 
   function handleFileChange(e) {
     const file = e.target.files[0];
     if (!file) return;
     const objectUrl = URL.createObjectURL(file);
-    setInfo((prev) => ({ ...prev, usuario: { ...prev.usuario, image: file, objectUrl: objectUrl } }));
+    updateUsuarioInfo({ image: file, objectUrl: objectUrl });
     setPreview(objectUrl);
     setMensaje((prev) => ({ ...prev, errorImagen: null }));
   }
 
   function validarForm() {
     const newErrores = {};
-    if (!info.usuario.nombre?.trim()) {
+    if (!usuarioInfo.nombre?.trim()) {
       newErrores.errorNombre = "El nombre del negocio es obligatorio";
     }
-    if (!info.usuario.apellido?.trim()) {
+    if (!usuarioInfo.apellido?.trim()) {
       newErrores.errorApellido = "El apellido es obligatorio";
     }
-    if (!info.usuario.image) {
+    if (!usuarioInfo.image) {
       newErrores.errorImagen = "La imagen del negocio es obligatoria";
     }
     setMensaje(newErrores);
@@ -101,8 +118,11 @@ export default function CrearUsuario({
             <Input
               id="nombre"
               placeholder="Nombre"
-              value={info?.usuario?.nombre ?? ""}
-              onChange={(e) => setInfo({ ...info, usuario: { ...info.usuario, nombre: e.target.value } })}
+              value={usuarioInfo?.nombre ?? ""}
+              onChange={(e) => {
+                setMensaje((prev) => ({ ...prev, errorNombre: null }));
+                updateUsuarioInfo({ nombre: e.target.value });
+              }}
             />
             {mensaje.errorNombre && (
               <p className="p-2 bg-[#ef44443f] rounded-lg text-red-600 border border-red-600 text-sm mt-1">
@@ -116,8 +136,11 @@ export default function CrearUsuario({
             <Input
               id="apellido"
               placeholder="Apellido"
-              value={info?.usuario?.apellido ?? ""}
-              onChange={(e) => setInfo({ ...info, usuario: { ...info.usuario, apellido: e.target.value } })}
+              value={usuarioInfo?.apellido ?? ""}
+              onChange={(e) => {
+                setMensaje((prev) => ({ ...prev, errorApellido: null }));
+                updateUsuarioInfo({ apellido: e.target.value });
+              }}
             />
             {mensaje.errorApellido && (
               <p className="p-2 bg-[#ef44443f] rounded-lg text-red-600 border border-red-600 text-sm mt-1">

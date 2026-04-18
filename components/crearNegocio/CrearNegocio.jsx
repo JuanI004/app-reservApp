@@ -2,14 +2,19 @@ import { useState } from "react";
 import Pag1 from "./Pag1";
 import Pag2 from "./Pag2";
 
-export default function CrearNegocio({ info, setInfo, handleSubmit }) {
+export default function CrearNegocio({
+  info,
+  setInfo,
+  handleSubmit,
+  handlePrev = null,
+}) {
   const [page, setPage] = useState(1);
 
   function handleNextPag(data) {
-    setInfo({ ...info, ...data });
-    setPage(page + 1);
     if (page === 2) {
       handleSubmit();
+    } else {
+      setPage(page + 1);
     }
   }
 
@@ -19,7 +24,8 @@ export default function CrearNegocio({ info, setInfo, handleSubmit }) {
         <Pag1
           info={info}
           setInfo={setInfo}
-          nextPage={() => handleNextPag(info)}
+          handlePrev={handlePrev}
+          nextPage={handleNextPag}
         />
       )}
       {page === 2 && (

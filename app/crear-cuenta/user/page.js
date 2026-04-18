@@ -28,7 +28,7 @@ export default function CrearCuentaDueño() {
       supabase
         .from("Clientes")
         .select("nuevo")
-        .eq("user_id", data.session.user.id)
+        .eq("idCliente", data.session.user.id)
         .then(({ data, error }) => {
           if (error) {
             router.push("/login");
@@ -76,7 +76,7 @@ export default function CrearCuentaDueño() {
         image_url: imageUrlUser,
         nuevo: false,
       })
-      .eq("user_id", user.id);
+      .eq("idCliente", user.id);
     if (error) {
       console.error(
         "Error completo:",

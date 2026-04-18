@@ -59,17 +59,20 @@ const Auth = () => {
     setLoading(false);
 
     let nomTabla = "";
+    let id = "";
 
     if (data.session.user?.user_metadata?.rol === "owner") {
       nomTabla = "Duenos";
+      id = "idDueño";
     } else if (data.session.user?.user_metadata?.rol === "user") {
       nomTabla = "Clientes";
+      id = "idCliente";
     }
 
     const { data: dataRol, error: errorRol } = await supabase
       .from(nomTabla)
       .select("nuevo")
-      .eq("user_id", data.session.user.id)
+      .eq(id, data.session.user.id)
       .single();
 
     if (error || errorRol) {

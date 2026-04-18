@@ -31,13 +31,14 @@ export default function CrearCuentaDueño() {
       if (error || !data.session) {
         setSession(null);
         router.push("/login");
+        return;
       } else {
         setSession(data.session);
       }
       supabase
         .from("Duenos")
         .select("nuevo")
-        .eq("user_id", data.session.user.id)
+        .eq("idDueño", data.session.user.id)
         .then(({ data, error }) => {
           if (error) {
             router.push("/login");
@@ -70,6 +71,12 @@ export default function CrearCuentaDueño() {
   }
 
   async function handleSubmitNegocio() {
+    console.log(info);
+    const currentInfo = {
+      negocio: info?.negocio ?? {},
+      usuario: info?.usuario ?? {},
+    };
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -78,30 +85,39 @@ export default function CrearCuentaDueño() {
       console.error("No hay usuario");
       return;
     }
-    let imageUrlNeg = await uploadImageToStorage(info.negocio.image, "negocio");
+
+    if (!currentInfo.negocio.image || !currentInfo.usuario.image) {
+      console.error("Faltan imagenes de perfil o negocio");
+      return;
+    }
+
+    let imageUrlNeg = await uploadImageToStorage(
+      currentInfo.negocio.image,
+      "negocio",
+    );
     const { error } = await supabase.from("Negocios").insert([
       {
-        user_id: user.id,
-        nombre: info.negocio.nombre,
-        telefono: info.negocio.telefono,
-        direccion: info.negocio.direccion,
+        idDueño: user.id,
+        nombre: currentInfo.negocio.nombre,
+        telefono: currentInfo.negocio.telefono,
+        direccion: currentInfo.negocio.direccion,
         image_url: imageUrlNeg,
       },
     ]);
     let imageUrlUser = await uploadImageToStorage(
-      info.usuario.image,
+      currentInfo.usuario.image,
       "perfiles",
     );
     const { error: dueñoError } = await supabase
       .from("Duenos")
       .update({
         email: user.email,
-        nombre: info.usuario.nombre,
-        apellido: info.usuario.apellido,
+        nombre: currentInfo.usuario.nombre,
+        apellido: currentInfo.usuario.apellido,
         image_url: imageUrlUser,
         nuevo: false,
       })
-      .eq("user_id", user.id);
+      .eq("idDueño", user.id);
     if (error) {
       console.error(
         "Error completo:",
@@ -109,10 +125,12 @@ export default function CrearCuentaDueño() {
       );
       console.error("Mensaje:", error ? error.message : dueñoError.message);
     }
+    router.push("/");
   }
 
   async function handleSubmitUsuario() {
     setEtapa(2);
+    console.log(info);
   }
 
   return (
@@ -132,15 +150,17 @@ export default function CrearCuentaDueño() {
         </div>
         {etapa === 1 ? (
           <CrearUsuario
-            info={info.usuario}
+            info={info}
             setInfo={setInfo}
             handleSubmit={handleSubmitUsuario}
           />
         ) : (
           <CrearNegocio
-            info={info.negocio}
+            info={info}
             setInfo={setInfo}
             handleSubmit={handleSubmitNegocio}
+            handlePrev={() => setEtapa(1)}
+            first={false}
           />
         )}
       </main>

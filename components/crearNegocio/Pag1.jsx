@@ -6,7 +6,7 @@ import Button from "../ui/Button";
 
 import { useState } from "react";
 
-export default function Pag1({ nextPage, info, setInfo }) {
+export default function Pag1({ nextPage, info, setInfo, handlePrev = null }) {
   const [mensaje, setMensaje] = useState({});
 
   function validarForm() {
@@ -40,10 +40,15 @@ export default function Pag1({ nextPage, info, setInfo }) {
               id="nombre"
               placeholder="Nombre del negocio"
               value={info.negocio.nombre}
-              onChange={(e) => setInfo((prev) => ({ ...info, negocio: {
-                ...prev.negocio,
-                nombre: e.target.value 
-              } }))}
+              onChange={(e) =>
+                setInfo((prev) => ({
+                  ...info,
+                  negocio: {
+                    ...prev.negocio,
+                    nombre: e.target.value,
+                  },
+                }))
+              }
             />
             {mensaje.errorNombre && (
               <p className="p-2 bg-[#ef44443f] rounded-lg text-red-600 border border-red-600 text-sm mt-1">
@@ -58,10 +63,15 @@ export default function Pag1({ nextPage, info, setInfo }) {
               id="direccion"
               placeholder="Dirección del negocio"
               value={info.negocio.direccion}
-              onChange={(e) => setInfo((prev) => ({ ...info, negocio: {
-                ...prev.negocio,
-                direccion: e.target.value
-              } }))}
+              onChange={(e) =>
+                setInfo((prev) => ({
+                  ...info,
+                  negocio: {
+                    ...prev.negocio,
+                    direccion: e.target.value,
+                  },
+                }))
+              }
             />
           </div>
           <div className="space-y-2 mt-4">
@@ -70,10 +80,15 @@ export default function Pag1({ nextPage, info, setInfo }) {
               id="telefono"
               placeholder="Número de teléfono"
               value={info.negocio.telefono}
-              onChange={(e) => setInfo((prev) => ({ ...info, negocio: {
-                ...prev.negocio,
-                telefono: e.target.value
-              } }))}
+              onChange={(e) =>
+                setInfo((prev) => ({
+                  ...info,
+                  negocio: {
+                    ...prev.negocio,
+                    telefono: e.target.value,
+                  },
+                }))
+              }
             />
             {mensaje.errorTelefono && (
               <p className="p-2 bg-[#ef44443f] rounded-lg text-red-600 border border-red-600 text-sm mt-1">
@@ -82,7 +97,19 @@ export default function Pag1({ nextPage, info, setInfo }) {
             )}
           </div>
         </div>
-        <div className="flex justify-end">
+
+        <div
+          className={`flex ${handlePrev ? "justify-between" : "justify-end"}`}
+        >
+          {handlePrev && (
+            <Button
+              type="button"
+              className="mt-2 p-4 cursor-pointer bg-[#6B7280] text-white py-2 rounded-lg hover:bg-[#4B5563] transition mr-2"
+              onClick={handlePrev}
+            >
+              Anterior
+            </Button>
+          )}
           <Button
             type="submit"
             className="mt-2 p-4 cursor-pointer bg-[#2563EB] text-white py-2 rounded-lg hover:bg-[#1E40AF] transition"

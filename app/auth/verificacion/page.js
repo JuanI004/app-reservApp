@@ -6,23 +6,28 @@ import { supabase } from "../../../lib/supabase";
 export default function AuthCallback() {
   const router = useRouter();
   useEffect(() => {
-    const handleCallback = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (error || !data.session) {
-        router.push("/");
-        return;
-      }
-      const rol = data.session.user?.user_metadata?.rol;
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_IN" && session) {
+        const rol = session.user?.user_metadata?.rol;
 
-      if (rol === "owner") {
-        router.push("/crear-cuenta/owner");
-      } else if (rol === "user") {
-        router.push("/crear-cuenta/user");
-      } else {
+        if (rol === "owner") {
+          router.push("/crear-cuenta/owner");
+        } else if (rol === "user") {
+          router.push("/crear-cuenta/user");
+        } else {
+          router.push("/");
+        }
+
+        subscription.unsubscribe();
+      } else if (event === "INITIAL_SESSION" && !session) {
+        // Si después del evento inicial no hay sesión, algo falló
         router.push("/");
       }
-    };
-    handleCallback();
+    });
+
+    return () => subscription.unsubscribe();
   }, [router]);
   return (
     <div className="w-screen h-screen flex items-center justify-center bg-white">
