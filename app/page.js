@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabase";
 
 import HomeOwner from "../components/home/homeOwner";
-/*import HomeUser from "../components/HomeUser";*/
+import HomeUser from "../components/home/homeUser";
 
 export default function Home() {
   const router = useRouter();
@@ -24,6 +24,7 @@ export default function Home() {
         return;
       }
       setRol(rolUsuario);
+      console.log("Rol del usuario:", rolUsuario);
       setLoading(false);
     });
   }, [router]);

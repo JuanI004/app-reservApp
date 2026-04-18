@@ -77,13 +77,17 @@ export default function CrearCuentaDueño() {
         nuevo: false,
       })
       .eq("idCliente", user.id);
-    if (error) {
+    if (dueñoError) {
       console.error(
         "Error completo:",
-        error ? error.message : dueñoError.message,
+        dueñoError ? dueñoError.message : error.message,
       );
-      console.error("Mensaje:", error ? error.message : dueñoError.message);
+      console.error(
+        "Mensaje:",
+        dueñoError ? dueñoError.message : error.message,
+      );
     }
+    router.push("/");
   }
 
   return (
