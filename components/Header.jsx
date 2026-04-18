@@ -35,20 +35,25 @@ export default function Header() {
     handleCallback();
   }, []);
   return (
-    <header className="fixed flex justify-between items-center top-0 w-screen bg-[#2563EB] text-white px-4 py-6">
-      <h1 className="text-xl font-bold">ReservApp</h1>
-      <ul className="flex gap-6">
+    <header className="fixed left-1/2  -translate-x-1/2 max-w-[820px] w-full rounded-[100px]  flex justify-between items-center top-5  bg-brand text-white p-4 z-20">
+      <h1
+        className="text-2xl font-display font-[700] cursor-pointer"
+        onClick={() => router.push("/")}
+      >
+        Reserv<span className="text-[#9FE1CB]">App</span>
+      </h1>
+      <ul className="flex gap-6 items-center">
         {session ? (
           <li>
             <button onClick={handleSignOut}>Cerrar Sesión</button>
           </li>
         ) : (
           <>
-            <li>
-              <Link href="/login">Iniciar Sesion</Link>
+            <li className="hover:bg-brand-light/60 py-2 px-4 rounded-full transition-all ">
+              <Link href="/login">Entrar</Link>
             </li>
-            <li>
-              <Link href="/signup">Registrarse</Link>
+            <li className="bg-white text-brand py-2 px-4 rounded-full font-medium hover:bg-[#d1faf0] hover:scale-105 transition-all">
+              <Link href="/signup">Empezar gratis</Link>
             </li>
           </>
         )}
