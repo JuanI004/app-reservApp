@@ -11,7 +11,7 @@ export default function Header() {
 
   async function handleSignOut() {
     await supabase.auth.signOut();
-    router.push("/");
+    router.push("/login");
     setSession(null);
   }
   useEffect(() => {
