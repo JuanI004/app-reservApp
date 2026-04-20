@@ -14,12 +14,9 @@ export default function HomeOwner() {
       nombre: "",
       telefono: "",
       direccion: "",
-      image: null,
-      objectUrl: null,
-    },
-    usuario: {
-      nombre: "",
-      apellido: "",
+      descripcion: "",
+      horarios: [],
+      ciudad: "",
       image: null,
       objectUrl: null,
     },
@@ -57,7 +54,9 @@ export default function HomeOwner() {
         idDueño: user.id,
         nombre: info.negocio.nombre,
         telefono: info.negocio.telefono,
-        direccion: info.negocio.direccion,
+        categoria: info.negocio.categoria,
+        descripcion: info.negocio.descripcion,
+        direccion: info.negocio.direccion + ", " + info.negocio.ciudad,
         image_url: info.negocio.image,
       },
     ]);
@@ -89,7 +88,7 @@ export default function HomeOwner() {
       </div>
       {creando && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="w-full max-w-md p-10 bg-white rounded-lg shadow-lg">
+          <div className="w-full max-w-xl p-10 bg-white rounded-lg shadow-lg">
             <CrearNegocio
               onClose={() => setCreando(false)}
               info={info}

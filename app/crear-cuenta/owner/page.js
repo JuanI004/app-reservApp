@@ -125,7 +125,7 @@ export default function CrearCuentaDueño() {
       );
       console.error("Mensaje:", error ? error.message : dueñoError.message);
     }
-    router.push("/");
+    router.push("/Home");
   }
 
   async function handleSubmitUsuario() {

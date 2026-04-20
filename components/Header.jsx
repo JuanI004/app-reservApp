@@ -44,7 +44,7 @@ export default function Header() {
       </h1>
       <ul className="flex gap-6 items-center">
         {session ? (
-          <li>
+          <li className="hover:bg-brand-light/60 cursor-pointer py-2 px-4 rounded-full transition-all ">
             <button onClick={handleSignOut}>Cerrar Sesión</button>
           </li>
         ) : (
