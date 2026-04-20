@@ -7,6 +7,7 @@ import { useState } from "react";
 import { supabase } from "../../lib/supabase";
 import NegociosOwner from "../NegociosOwner";
 
+
 export default function HomeOwner() {
   const [creando, setCreando] = useState(false);
   const [info, setInfo] = useState({
