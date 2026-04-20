@@ -7,6 +7,7 @@ import { supabase } from "../../lib/supabase";
 import Calendario from "./Calendario";
 import CrearServicio from "../agregarServicios/CrearServicio";
 import Button from "../ui/Button";
+import CrearEmpleado from "../crearEmpleado/CrearEmpleado";
 
 
 
@@ -21,6 +22,7 @@ import Button from "../ui/Button";
 export default function PanelNegocio({ negocio , turnos}) {
   const router = useRouter();
   const [mostrarCrearServicio, setMostrarCrearServicio] = useState(false);
+  const [mostrarCrearEmpleado, setMostrarCrearEmpleado] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-100 mt-20">
@@ -49,7 +51,8 @@ export default function PanelNegocio({ negocio , turnos}) {
         >
           ▼
         </span>
-      </Button>
+      </Button>¨
+      
       <div
         className={`overflow-hidden transition-all duration-500 ease-in-out ${
           mostrarCrearServicio ? "max-h-[500px] opacity-100 mt-4" : "max-h-0 opacity-0"
@@ -59,6 +62,31 @@ export default function PanelNegocio({ negocio , turnos}) {
           <CrearServicio />
         </div>
       </div>
+
+      <Button
+        onClick={() => setMostrarCrearEmpleado(prev => !prev)}
+        className="mt-4 flex mx-10 items-center gap-2 bg-black text-white px-4 py-2 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
+      >
+        Crear empleado
+        <span
+          className={`transition-transform duration-300 ${
+            mostrarCrearServicio ? "rotate-180" : ""
+          }`}
+        >
+          ▼
+        </span>
+      </Button>¨
+        <div
+        className={`overflow-hidden transition-all duration-500 ease-in-out ${
+          mostrarCrearEmpleado ? "max-h-[500px] opacity-100 mt-4" : "max-h-0 opacity-0"
+        }`}
+      >
+        <div className="bg-white p-4 rounded shadow">
+          <CrearEmpleado />
+        </div>
+      </div>
+
+
 
       <div className="p-6">
         <div className="bg-white rounded-lg p-6">
