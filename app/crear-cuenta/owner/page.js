@@ -15,6 +15,18 @@ export default function CrearCuentaDueño() {
       nombre: "",
       telefono: "",
       direccion: "",
+      descripcion: "",
+      horarios: [
+        { dia: 1, activa: true, desde: "09:00", hasta: "18:00" },
+        { dia: 2, activa: true, desde: "09:00", hasta: "18:00" },
+        { dia: 3, activa: true, desde: "09:00", hasta: "18:00" },
+        { dia: 4, activa: true, desde: "09:00", hasta: "18:00" },
+        { dia: 5, activa: true, desde: "09:00", hasta: "18:00" },
+        { dia: 6, activa: false, desde: "09:00", hasta: "18:00" },
+        { dia: 7, activa: false, desde: "09:00", hasta: "18:00" },
+      ],
+      servicios: [],
+      ciudad: "",
       image: null,
       objectUrl: null,
     },
@@ -100,7 +112,9 @@ export default function CrearCuentaDueño() {
         idDueño: user.id,
         nombre: currentInfo.negocio.nombre,
         telefono: currentInfo.negocio.telefono,
-        direccion: currentInfo.negocio.direccion,
+        categoria: info.negocio.categoria,
+        descripcion: info.negocio.descripcion,
+        direccion: info.negocio.direccion + ", " + info.negocio.ciudad,
         image_url: imageUrlNeg,
       },
     ]);
@@ -134,20 +148,17 @@ export default function CrearCuentaDueño() {
   }
 
   return (
-    <div className="min-h-screen pt-[76px] bg-gray-200 flex items-center justify-center bg-secondary/30">
-      <main className="w-full p-10 bg-white  max-w-md rounded-lg shadow-lg">
-        <div className="mb-6 ">
-          <h1 className="text-2xl font-bold text-black">
-            {etapa === 1
-              ? "Agrega tus datos"
-              : "Agrega los datos de tu negocio"}
-          </h1>
-          <p className="text-sm  text-gray-400">
-            {etapa === 1
-              ? "Completa la información para crear tu cuenta"
-              : "Completa la información para agregar tu negocio a ReservApp"}
-          </p>
-        </div>
+    <div className=" overflow-scroll min-h-screen pt-[76px] flex flex-col gap-6 items-center justify-center bg-secondary/30">
+      <div>
+        <h2 className="text-xl text-black text-[1.5rem] font-display font-[800]  ">
+          Completa tu información
+        </h2>
+        <p className="text-gray-400 text-lg mb-4">
+          Completá los datos y empezá a recibir reservas en minutos. Es gratis.
+        </p>
+      </div>
+
+      <main className="w-full p-10 bg-white  max-w-2xl rounded-lg shadow-lg">
         {etapa === 1 ? (
           <CrearUsuario
             info={info}

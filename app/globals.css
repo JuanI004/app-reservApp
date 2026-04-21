@@ -5,6 +5,7 @@
   --color-brand-light: #1d9e75;
   --color-brand-pale: #e1f5ee;
   --color-accent: #d85a30;
+  --color-background: #f2f0ec;
 
   --font-display: var(--font-display);
   --font-body: var(--font-body);
@@ -20,7 +21,10 @@ body {
 
 /* Base */
 .fc {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 13px;
 }
 
@@ -74,14 +78,14 @@ body {
   font-size: 12px;
   font-weight: 500;
   background: linear-gradient(135deg, #3b82f6, #2563eb);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   transition: all 0.15s ease;
 }
 
 /* Hover evento */
 .fc-event:hover {
   transform: translateY(-1px) scale(1.01);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
 }
 
 /* Texto evento */

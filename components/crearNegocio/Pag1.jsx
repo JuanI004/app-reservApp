@@ -19,7 +19,7 @@ import { useState } from "react";
 
 export default function Pag1({ nextPage, info, setInfo, handlePrev = null }) {
   const [mensaje, setMensaje] = useState({});
-  const [preview, setPreview] = useState(info?.objectUrl || null);
+  const [preview, setPreview] = useState(info?.negocio.objectUrl || null);
 
   function handleFileChange(e) {
     const file = e.target.files[0];
@@ -76,7 +76,7 @@ export default function Pag1({ nextPage, info, setInfo, handlePrev = null }) {
         </p>
         <div className="flex items-start gap-4 mb-4">
           <div
-            className={`border-2 border-brand w-20 h-20 rounded-lg 
+            className={`border-2 border-brand/50 border-dashed bg-brand/10 w-20 h-20 rounded-lg 
   flex flex-col justify-center items-center gap-2 overflow-hidden cursor-pointer
   hover:border-brand hover:bg-brand-light/30 transition-all duration-200 
   ${mensaje.errorImagen && "border-red-500 bg-red-900/70"}`}
@@ -107,7 +107,7 @@ export default function Pag1({ nextPage, info, setInfo, handlePrev = null }) {
             <button
               type="button"
               onClick={() => document.getElementById("imagen").click()}
-              className="mt-2 p-4 cursor-pointer bg-brand text-white py-2 rounded-lg hover:bg-brand/90 transition"
+              className="mt-2 p-4 cursor-pointer bg-brand text-white py-2 rounded-full hover:bg-brand/90 transition"
             >
               Subir logo
             </button>
@@ -227,12 +227,12 @@ export default function Pag1({ nextPage, info, setInfo, handlePrev = null }) {
               <Label htmlFor="ciudad">Ciudad / Barrio *</Label>
               <BuscarCiudad
                 value={info.negocio.ciudad}
-                onChange={(value) =>
+                onConfirm={(value) =>
                   setInfo((prev) => ({
                     ...info,
                     negocio: {
                       ...prev.negocio,
-                      direccion: e.target.value,
+                      ciudad: value,
                     },
                   }))
                 }
@@ -267,19 +267,18 @@ export default function Pag1({ nextPage, info, setInfo, handlePrev = null }) {
           className={`flex ${handlePrev ? "justify-between" : "justify-end"}`}
         >
           {handlePrev && (
-            <Button
-              type="button"
-              className="mt-2 p-4 cursor-pointer bg-[#6B7280] text-white py-2 rounded-lg hover:bg-[#4B5563] transition mr-2"
+            <button
               onClick={handlePrev}
+              className="px-6 py-2 border border-brand text-brand cursor-pointer rounded-full hover:bg-gray-200 transition"
             >
-              Anterior
-            </Button>
+              {"< Anterior"}
+            </button>
           )}
           <Button
             type="submit"
-            className="mt-2 p-4 cursor-pointer bg-brand text-white py-2 rounded-lg hover:bg-brand/90 transition"
+            className="px-6  cursor-pointer bg-brand text-white py-2 rounded-full hover:bg-brand/90 transition"
           >
-            Siguiente
+            {"Siguiente >"}
           </Button>
         </div>
       </form>

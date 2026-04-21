@@ -1,8 +1,8 @@
 import { useState } from "react";
 import ciudades from "../../utils/ciudades";
 
-export default function BuscarCiudad() {
-  const [query, setQuery] = useState("");
+export default function BuscarCiudad({ value, onConfirm }) {
+  const [query, setQuery] = useState(value || "");
   const [show, setShow] = useState(false);
 
   const filtered = ciudades.filter((c) =>
@@ -25,6 +25,7 @@ export default function BuscarCiudad() {
               key={c}
               onClick={() => {
                 setQuery(c);
+                onConfirm(c);
                 setShow(false);
               }}
               className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
