@@ -9,6 +9,7 @@ import PanelNegocio from "../../../../components/negocio/PanelNegocio.jsx";
 export default function NegocioPage() {
   const { id } = useParams();
   const router = useRouter();
+  
   const [negocio, setNegocio] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,7 +33,7 @@ export default function NegocioPage() {
   .eq("idNegocio", id);
 
     if (error) {
-      console.error(error);
+      console.log(error);
     } else {
       setTurnos(data);
     }
