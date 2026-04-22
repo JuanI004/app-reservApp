@@ -1,3 +1,5 @@
+import Input from "../ui/Input";
+
 export default function Pag2({ info, setInfo, prevPage, nextPage }) {
   const upsertHorario = (horarios, dia, data) => {
     const lista = Array.isArray(horarios) ? horarios : [];
@@ -15,7 +17,7 @@ export default function Pag2({ info, setInfo, prevPage, nextPage }) {
   return (
     <div className="w-full h-full flex flex-col z-10">
       <h2 className="text-xl text-gray-600 font-display font-bold ">
-        Datos de tu negocio
+        Horarios de atención
       </h2>
       <p className="text-gray-400 text-sm mb-4">
         Configurá los días y horarios en que tu negocio atiende.
@@ -31,7 +33,7 @@ export default function Pag2({ info, setInfo, prevPage, nextPage }) {
         return (
           <div
             key={index}
-            className={`px-3 py-2 flex items-center gap-4 mb-3 ${!horarioDia?.activa ? "opacity-50" : "bg-brand-light/10 border border-brand/40 rounded-lg"}`}
+            className={`px-3 py-2 flex items-center gap-4 mb-3 ${!horarioDia?.activa ? "opacity-50" : "bg-brand-light/10 border border-brand/40 rounded-xl"}`}
           >
             <input
               type="checkbox"
@@ -50,7 +52,7 @@ export default function Pag2({ info, setInfo, prevPage, nextPage }) {
                 }));
               }}
               id={`dia-${index}`}
-              className="w-4 h-4 accent-brand bg-gray-100 border-gray-300 rounded focus:ring-2 focus:ring-brand transition"
+              className="w-4 h-4 accent-brand bg-gray-100 border-gray-300 rounded-xl focus:ring-2 focus:ring-brand transition"
             />
             <label htmlFor={`dia-${index}`} className="text-gray-700">
               {
@@ -86,7 +88,7 @@ export default function Pag2({ info, setInfo, prevPage, nextPage }) {
                     },
                   }));
                 }}
-                className="w-30 px-2 py-1 border bg-white border-brand/40 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-30 px-2 py-1 border bg-background border-brand/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <span className="text-gray-500">a</span>
               <input
@@ -115,13 +117,32 @@ export default function Pag2({ info, setInfo, prevPage, nextPage }) {
                     },
                   }));
                 }}
-                className="w-30 px-2 py-1 border bg-white border-brand/40 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-30 px-2 py-1 border bg-background border-brand/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
         );
       })}
-      <div className="mt-auto flex justify-between">
+      <h2 className="mt-4 text-sm text-gray-700 tracking-widest uppercase mb-2">
+        Intervalo entre turnos
+      </h2>
+      <Input
+        type="number"
+        min="1"
+        placeholder="Duración en minutos"
+        value={info.negocio?.tamTurno || ""}
+        onChange={(e) =>
+          setInfo((prev) => ({
+            ...prev,
+            negocio: {
+              ...prev.negocio,
+              tamTurno: e.target.value,
+            },
+          }))
+        }
+      />
+
+      <div className="mt-6 flex justify-between">
         <button
           onClick={prevPage}
           className="px-6 py-2 border border-brand text-brand cursor-pointer rounded-full hover:bg-gray-200 transition"

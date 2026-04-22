@@ -7,8 +7,9 @@ import { useState } from "react";
 import { supabase } from "../../lib/supabase";
 import NegociosOwner from "../NegociosOwner";
 
-export default function HomeOwner() {
+export default function HomeOwner({ session }) {
   const [creando, setCreando] = useState(false);
+
   const [info, setInfo] = useState({
     negocio: {
       nombre: "",
@@ -24,6 +25,7 @@ export default function HomeOwner() {
         { dia: 6, activa: false, desde: "09:00", hasta: "18:00" },
         { dia: 7, activa: false, desde: "09:00", hasta: "18:00" },
       ],
+      tamTurno: 30,
       servicios: [],
       ciudad: "",
       image: null,
@@ -31,9 +33,12 @@ export default function HomeOwner() {
     },
   });
 
-  async function uploadImageToStorage(file, bucketName) {
+  async function uploadImageToStorage(file, bucketName, userId) {
+    if (!file || !userId) {
+      throw new Error("Missing file or user id for upload");
+    }
     const extension = file.name.split(".").pop();
-    const fileName = `${session.user.id}.${extension}`;
+    const fileName = `${userId}.${extension}`;
 
     const { error } = await supabase.storage
       .from(bucketName)
@@ -57,7 +62,11 @@ export default function HomeOwner() {
       console.error("No hay usuario");
       return;
     }
-    /*let imageUrlNeg = await uploadImageToStorage(info.negocio.image, "negocio");*/
+    let imageUrlNeg = await uploadImageToStorage(
+      info.negocio.image,
+      "negocio",
+      user.id,
+    );
     const { error } = await supabase.from("Negocios").insert([
       {
         idDueño: user.id,
@@ -65,8 +74,11 @@ export default function HomeOwner() {
         telefono: info.negocio.telefono,
         categoria: info.negocio.categoria,
         descripcion: info.negocio.descripcion,
+        servicios: info.negocio.servicios,
+        horarios: info.negocio.horarios,
         direccion: info.negocio.direccion + ", " + info.negocio.ciudad,
-        image_url: info.negocio.image,
+        image_url: imageUrlNeg,
+        tamTurno: info.negocio.tamTurno,
       },
     ]);
 
@@ -77,6 +89,7 @@ export default function HomeOwner() {
       console.log("Negocio creado exitosamente");
       close();
     }
+    setCreando(false);
   }
 
   return (

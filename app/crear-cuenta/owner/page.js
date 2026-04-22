@@ -28,6 +28,7 @@ export default function CrearCuentaDueño() {
       servicios: [],
       ciudad: "",
       image: null,
+      tamTurno: 30,
       objectUrl: null,
     },
     usuario: {
@@ -110,12 +111,15 @@ export default function CrearCuentaDueño() {
     const { error } = await supabase.from("Negocios").insert([
       {
         idDueño: user.id,
-        nombre: currentInfo.negocio.nombre,
-        telefono: currentInfo.negocio.telefono,
+        nombre: info.negocio.nombre,
+        telefono: info.negocio.telefono,
         categoria: info.negocio.categoria,
         descripcion: info.negocio.descripcion,
+        servicios: info.negocio.servicios,
+        horarios: info.negocio.horarios,
         direccion: info.negocio.direccion + ", " + info.negocio.ciudad,
         image_url: imageUrlNeg,
+        tamTurno: info.negocio.tamTurno,
       },
     ]);
     let imageUrlUser = await uploadImageToStorage(
@@ -139,7 +143,7 @@ export default function CrearCuentaDueño() {
       );
       console.error("Mensaje:", error ? error.message : dueñoError.message);
     }
-    router.push("/Home");
+    router.push("/home");
   }
 
   async function handleSubmitUsuario() {
@@ -158,7 +162,7 @@ export default function CrearCuentaDueño() {
         </p>
       </div>
 
-      <main className="w-full p-10 bg-white  max-w-2xl rounded-lg shadow-lg">
+      <main className="w-full p-10 bg-white  max-w-2xl rounded-xl shadow-lg">
         {etapa === 1 ? (
           <CrearUsuario
             info={info}

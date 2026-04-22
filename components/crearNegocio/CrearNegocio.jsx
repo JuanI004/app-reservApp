@@ -27,7 +27,7 @@ export default function CrearNegocio({
         {[1, 2, 3, 4].map((num) => (
           <li
             key={num}
-            className={`  ${page === num ? "bg-brand text-white" : "bg-gray-300 text-gray-600"} w-8 h-8 rounded-full flex items-center justify-center`}
+            className={`  ${page === num ? "bg-brand text-white" : "bg-background text-gray-600"} w-8 h-8 rounded-full flex items-center justify-center`}
           >
             {num}
           </li>

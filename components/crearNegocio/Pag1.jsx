@@ -10,6 +10,8 @@ const categorias = [
   { value: "peluqueria", label: "Peluquería" },
   { value: "restaurante", label: "Restaurante" },
   { value: "gimnasio", label: "Gimnasio" },
+  { value: "salon de eventos", label: "Salón de eventos" },
+  { value: "tatuajes", label: "Tatuajes & Piercings" },
   { value: "spa", label: "Spa" },
   { value: "clinica", label: "Clínica" },
   { value: "Otro", label: "Otro" },
@@ -76,7 +78,7 @@ export default function Pag1({ nextPage, info, setInfo, handlePrev = null }) {
         </p>
         <div className="flex items-start gap-4 mb-4">
           <div
-            className={`border-2 border-brand/50 border-dashed bg-brand/10 w-20 h-20 rounded-lg 
+            className={`border-2 border-brand/50 border-dashed bg-brand/10 w-20 h-20 rounded-xl
   flex flex-col justify-center items-center gap-2 overflow-hidden cursor-pointer
   hover:border-brand hover:bg-brand-light/30 transition-all duration-200 
   ${mensaje.errorImagen && "border-red-500 bg-red-900/70"}`}
@@ -144,7 +146,7 @@ export default function Pag1({ nextPage, info, setInfo, handlePrev = null }) {
                 }
               />
               {mensaje.errorNombre && (
-                <p className="p-2 bg-[#ef44443f] rounded-lg text-red-600 border border-red-600 text-sm mt-1">
+                <p className="p-2 bg-[#ef44443f] rounded-xl text-red-600 border border-red-600 text-sm mt-1">
                   {mensaje.errorNombre}
                 </p>
               )}
@@ -153,7 +155,7 @@ export default function Pag1({ nextPage, info, setInfo, handlePrev = null }) {
               <Label htmlFor="categoria">Categoría *</Label>
               <select
                 id="categoria"
-                className="w-full border  border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+                className="w-full border bg-background border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
                 value={info.negocio.categoria}
                 onChange={(e) =>
                   setInfo((prev) => ({
@@ -179,7 +181,7 @@ export default function Pag1({ nextPage, info, setInfo, handlePrev = null }) {
                 ))}
               </select>
               {mensaje.errorNombre && (
-                <p className="p-2 bg-[#ef44443f] rounded-lg text-red-600 border border-red-600 text-sm mt-1">
+                <p className="p-2 bg-[#ef44443f] rounded-xl text-red-600 border border-red-600 text-sm mt-1">
                   {mensaje.errorNombre}
                 </p>
               )}
@@ -191,7 +193,7 @@ export default function Pag1({ nextPage, info, setInfo, handlePrev = null }) {
             <textarea
               id="descripcion"
               placeholder="Cuéntanos un poco sobre tu negocio"
-              className="w-full border  border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+              className="w-full border bg-background border-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
               value={info.negocio.descripcion}
               onChange={(e) =>
                 setInfo((prev) => ({
@@ -256,7 +258,7 @@ export default function Pag1({ nextPage, info, setInfo, handlePrev = null }) {
               }
             />
             {mensaje.errorTelefono && (
-              <p className="p-2 bg-[#ef44443f] rounded-lg text-red-600 border border-red-600 text-sm mt-1">
+              <p className="p-2 bg-[#ef44443f] rounded-xl text-red-600 border border-red-600 text-sm mt-1">
                 {mensaje.errorTelefono}
               </p>
             )}
@@ -264,7 +266,7 @@ export default function Pag1({ nextPage, info, setInfo, handlePrev = null }) {
         </div>
 
         <div
-          className={`flex ${handlePrev ? "justify-between" : "justify-end"}`}
+          className={`flex mt-6 ${handlePrev ? "justify-between" : "justify-end"}`}
         >
           {handlePrev && (
             <button

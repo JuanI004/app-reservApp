@@ -8,7 +8,7 @@ import HomeOwner from "../../components/home/homeOwner";
 import HomeUser from "../../components/home/homeUser";
 
 export default function Home() {
-  const { rol } = useHomeContext();
+  const { rol, session } = useHomeContext();
   const router = useRouter();
 
   useEffect(() => {
@@ -17,8 +17,8 @@ export default function Home() {
     }
   }, [rol, router]);
 
-  if (rol === "owner") return <HomeOwner />;
-  if (rol === "user") return <HomeUser />;
+  if (rol === "owner") return <HomeOwner session={session} />;
+  if (rol === "user") return <HomeUser session={session} />;
 
   return null;
 }

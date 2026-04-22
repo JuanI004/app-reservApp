@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Input from "../ui/Input";
 
 export default function Pag3({ nextPage, info, setInfo, prevPage }) {
   const [mensaje, setMensaje] = useState("");
@@ -46,7 +47,7 @@ export default function Pag3({ nextPage, info, setInfo, prevPage }) {
           <div className="w-full flex flex-col gap-4">
             {info.negocio?.servicios?.map((servicio, index) => (
               <div key={index} className="flex gap-4">
-                <input
+                <Input
                   type="text"
                   placeholder="Nombre del servicio"
                   value={servicio.nombre}
@@ -64,9 +65,9 @@ export default function Pag3({ nextPage, info, setInfo, prevPage }) {
                       },
                     }));
                   }}
-                  className="w-1/2 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand"
+                  className="w-1/2"
                 />
-                <input
+                <Input
                   type="number"
                   min="0"
                   placeholder="Duración (min)"
@@ -85,9 +86,9 @@ export default function Pag3({ nextPage, info, setInfo, prevPage }) {
                       },
                     }));
                   }}
-                  className="w-1/4 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand"
+                  className="w-1/4"
                 />
-                <input
+                <Input
                   type="number"
                   min="0"
                   placeholder="Precio"
@@ -106,7 +107,7 @@ export default function Pag3({ nextPage, info, setInfo, prevPage }) {
                       },
                     }));
                   }}
-                  className="w-1/4 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-brand"
+                  className="w-1/4 "
                 />
                 <button
                   type="button"
@@ -121,7 +122,7 @@ export default function Pag3({ nextPage, info, setInfo, prevPage }) {
                       },
                     }));
                   }}
-                  className="p-2 bg-white text-[#E24B4A] border cursor-pointer border-gray-300 rounded hover:border hover:bg-[#E24B4A]/10 hover:border-[#E24B4A] transition"
+                  className="p-2 bg-background text-[#E24B4A] border cursor-pointer border-gray-300 rounded-xl hover:border hover:bg-[#E24B4A]/10 hover:border-[#E24B4A] transition"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

@@ -15,18 +15,18 @@ const Input = React.forwardRef(function Input(
       ref={ref}
       type={type}
       className={`
-        w-full px-4 py-2 
+         px-4 py-2 
         border border-gray-300 
-        rounded-lg 
-        bg-white 
+        rounded-xl 
+        bg-background
         text-black
         text-sm 
         outline-none 
         transition
-        focus:border-[#2563EB]
+        focus:border-brand
         focus:ring-1 focus:ring-black
         placeholder:text-gray-400
-        ${className}
+        ${className === null ? "w-full" : className}
       `}
       {...inputProps}
     />

@@ -18,42 +18,49 @@ export default function HomeLayout({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data, error }) => {
-      if (error || !data.session) {
-        router.push("/login");
-        return;
-      }
-      setSession(data.session);
-      const rolUsuario = data.session.user?.user_metadata?.rol;
-      if (!rolUsuario) {
-        router.push("/login");
-        return;
-      }
-      let nomTabla = "";
-      if (rolUsuario === "owner") nomTabla = "Duenos";
-      else if (rolUsuario === "user") nomTabla = "Usuarios";
+    async function loadSession() {
+      const { data, error } = await supabase.auth.getSession();
 
-      if (rolUsuario) setRol(rolUsuario);
+      if (error || !data?.session) {
+        router.replace("/login");
+        setLoading(false);
+        return;
+      }
+
+      const currentSession = data.session;
+      const rolUsuario = currentSession.user?.user_metadata?.rol;
+
+      if (!rolUsuario) {
+        router.replace("/login");
+        setLoading(false);
+        return;
+      }
+
+      setSession(currentSession);
+      setRol(rolUsuario);
       setLoading(false);
-    });
+    }
+
+    loadSession();
   }, [router]);
 
-  if (loading) {
+  if (loading || !session) {
     return (
-      <div className="w-screen h-screen flex items-center justify-center bg-white">
+      <div className="w-screen h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div
             className="w-10 h-10 border-2 border-t-transparent rounded-full animate-spin"
-            style={{ borderColor: "#2563EB", borderTopColor: "transparent" }}
+            style={{ borderColor: "#0f6e56", borderTopColor: "transparent" }}
           />
-          <p className="text-[#2563EB] text-lg">Cargando...</p>
+          <p className="text-brand text-lg">Cargando...</p>
         </div>
       </div>
     );
   }
+
   return (
     <HomeContext.Provider value={{ rol, session }}>
-      <div>{children}</div>
+      {children}
     </HomeContext.Provider>
   );
 }
