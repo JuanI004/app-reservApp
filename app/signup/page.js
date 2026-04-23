@@ -89,10 +89,12 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen pt-[76px] bg-gray-200 flex items-center justify-center bg-secondary/30">
+    <div className="min-h-screen pt-[76px] bg-background flex items-center justify-center bg-secondary/30">
       <main className="w-full p-10 bg-white max-w-md rounded-lg shadow-xl">
         <div className="mb-6 ">
-          <h1 className="text-2xl font-bold text-black">Registrarse</h1>
+          <h1 className="text-2xl font-display font-bold text-black">
+            Registrarse
+          </h1>
           <p className="text-sm  text-gray-400">
             Crea una cuenta para comenzar
           </p>
@@ -124,8 +126,8 @@ const Auth = () => {
                   type="button"
                   className={`py-2 px-4 rounded-lg border cursor-pointer ${
                     formData.rol === "user"
-                      ? "bg-[#2563EB] text-white border-[#2563EB]"
-                      : "bg-white text-black border-gray-300"
+                      ? "bg-brand text-white border-brand"
+                      : "bg-background text-black border-gray-300"
                   }`}
                   onClick={() => {
                     setMensaje({ ...mensaje, errorRol: null });
@@ -138,8 +140,8 @@ const Auth = () => {
                   type="button"
                   className={`py-2 px-4 rounded-lg border cursor-pointer ${
                     formData.rol === "owner"
-                      ? "bg-[#2563EB] text-white border-[#2563EB]"
-                      : "bg-white text-black border-gray-300"
+                      ? "bg-brand text-white border-brand"
+                      : "bg-background text-black border-gray-300"
                   }`}
                   onClick={() => {
                     setMensaje({ ...mensaje, errorRol: null });
@@ -215,11 +217,13 @@ const Auth = () => {
               </p>
             )}
             {mensaje.success && (
-              <p className="text-green-500 text-sm mt-1">{mensaje.success}</p>
+              <p className=" p-2 bg-brand-light/10 border text-center border-brand  rounded-xl text-brand text-sm mt-1">
+                {mensaje.success}
+              </p>
             )}
             <Button
               type="submit"
-              className="mt-2 w-full cursor-pointer bg-[#2563EB] text-white py-2 rounded-lg hover:bg-[#1E40AF] transition"
+              className="mt-2 w-full cursor-pointer bg-brand text-white py-2 rounded-xl hover:bg-brand/90 transition"
               onSubmit={handleSubmit}
             >
               Crear cuenta
@@ -234,7 +238,7 @@ const Auth = () => {
               ¿Ya tienes cuenta?{" "}
               <Link
                 href="/login"
-                className="font-bold cursor pointer text-[#2563EB]"
+                className="font-bold cursor pointer text-brand"
               >
                 Inicia sesión aquí
               </Link>

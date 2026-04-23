@@ -56,7 +56,7 @@ export default function CrearCuentaDueño() {
           if (error) {
             router.push("/login");
           } else if (data[0]?.nuevo === false) {
-            router.push("/");
+            router.push("/Home");
           }
         });
     });
@@ -143,7 +143,7 @@ export default function CrearCuentaDueño() {
       );
       console.error("Mensaje:", error ? error.message : dueñoError.message);
     }
-    router.push("/home");
+    router.push("/Home");
   }
 
   async function handleSubmitUsuario() {

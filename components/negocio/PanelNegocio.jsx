@@ -8,8 +8,6 @@ import Calendario from "./Calendario";
 import CrearServicio from "../agregarServicios/CrearServicio";
 import Button from "../ui/Button";
 
-
-
 /*const TABS = [
   { id: "calendario", label: "Calendario" },
   { id: "info",       label: "Info"       },
@@ -26,7 +24,7 @@ export default function PanelNegocio({ negocio, turnos }) {
       {/* Header del panel */}
       <div className="bg-white border-b px-6 py-4 flex items-center gap-4">
         <button
-          onClick={() => router.push("/home")}
+          onClick={() => router.push("/Home")}
           className="text-gray-500 hover:text-black text-sm"
         >
           ← Volver
@@ -37,7 +35,7 @@ export default function PanelNegocio({ negocio, turnos }) {
         </div>
       </div>
       <Button
-        onClick={() => setMostrarCrearServicio(prev => !prev)}
+        onClick={() => setMostrarCrearServicio((prev) => !prev)}
         className="mt-4 flex mx-10 items-center gap-2 bg-black text-white px-4 py-2 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
       >
         Crear servicio
@@ -51,7 +49,9 @@ export default function PanelNegocio({ negocio, turnos }) {
       </Button>
       <div
         className={`overflow-hidden transition-all duration-500 ease-in-out ${
-          mostrarCrearServicio ? "max-h-[500px] opacity-100 mt-4" : "max-h-0 opacity-0"
+          mostrarCrearServicio
+            ? "max-h-[500px] opacity-100 mt-4"
+            : "max-h-0 opacity-0"
         }`}
       >
         <div className="bg-white p-4 rounded shadow">

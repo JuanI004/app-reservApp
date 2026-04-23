@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useHomeContext } from "./layout";
+import { useHomeContext } from "./context";
 
 import HomeOwner from "../../components/home/homeOwner";
 import HomeUser from "../../components/home/homeUser";

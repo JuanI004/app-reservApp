@@ -57,14 +57,19 @@ const Auth = () => {
       password: formData.password,
     });
     setLoading(false);
-
+    if (!data?.session) {
+      setMensaje({
+        errorGeneral: "Error al iniciar sesión. Verifica tus credenciales.",
+      });
+      return;
+    }
     let nomTabla = "";
     let id = "";
 
-    if (data.session.user?.user_metadata?.rol === "owner") {
+    if (data.session?.user?.user_metadata?.rol === "owner") {
       nomTabla = "Duenos";
       id = "idDueño";
-    } else if (data.session.user?.user_metadata?.rol === "user") {
+    } else if (data.session?.user?.user_metadata?.rol === "user") {
       nomTabla = "Clientes";
       id = "idCliente";
     }
@@ -85,15 +90,17 @@ const Auth = () => {
       setMensaje({ errorGeneral: error.message });
     } else {
       setMensaje({ exito: "¡Sesión iniciada! Bienvenido de nuevo." });
-      router.push("/home");
+      router.push("/Home");
     }
   }
 
   return (
-    <div className="min-h-screen pt-19 bg-gray-200 flex items-center justify-center bg-secondary/30">
+    <div className="min-h-screen pt-19 bg-background flex items-center justify-center bg-secondary/30">
       <main className="w-full p-10 bg-white max-w-md rounded-lg shadow-lg">
         <div className="mb-6 ">
-          <h1 className="text-2xl font-bold text-black">Iniciar Sesión</h1>
+          <h1 className="text-2xl font-bold font-display text-black">
+            Iniciar Sesión
+          </h1>
           <p className="text-sm  text-gray-400">
             Ingresa tus credenciales para acceder
           </p>
@@ -138,9 +145,15 @@ const Auth = () => {
                 </p>
               )}
             </div>
+            {mensaje.errorGeneral && (
+              <p className="p-2 bg-[#ef44443f] rounded-lg text-red-600 border border-red-600 text-sm mt-1">
+                {mensaje.errorGeneral}
+              </p>
+            )}
+
             <Button
               type="submit"
-              className="mt-2 w-full cursor-pointer bg-[#2563EB] text-white py-2 rounded-lg hover:bg-[#1E40AF] transition"
+              className="mt-2 w-full cursor-pointer bg-brand text-white py-2 rounded-xl hover:bg-brand/90 transition"
             >
               Iniciar Sesión
             </Button>
@@ -154,7 +167,7 @@ const Auth = () => {
               ¿No tienes cuenta?{" "}
               <Link
                 href="/signup"
-                className="font-bold cursor pointer text-[#2563EB]"
+                className="font-bold cursor pointer text-brand"
               >
                 Regístrate aquí
               </Link>

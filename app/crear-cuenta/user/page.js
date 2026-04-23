@@ -33,7 +33,7 @@ export default function CrearCuentaDueño() {
           if (error) {
             router.push("/login");
           } else if (data[0]?.nuevo === false) {
-            router.push("/");
+            router.push("/Home");
           }
         });
     });
@@ -87,18 +87,20 @@ export default function CrearCuentaDueño() {
         dueñoError ? dueñoError.message : error.message,
       );
     }
-    router.push("/");
+    router.push("/Home");
   }
 
   return (
-    <div className="min-h-screen pt-[76px] bg-gray-200 flex items-center justify-center bg-secondary/30">
+    <div className="min-h-screen pt-[76px] bg-background flex flex-col items-center justify-center bg-secondary/30">
+      <div>
+        <h2 className="text-xl text-black text-[1.5rem] font-display font-[800]  ">
+          Completa tu información
+        </h2>
+        <p className="text-gray-400 text-lg mb-4">
+          Completá los datos y empezá a recibir reservas en minutos. Es gratis.
+        </p>
+      </div>
       <main className="w-full p-10 bg-white  max-w-md rounded-lg shadow-lg">
-        <div className="mb-6 ">
-          <h1 className="text-2xl font-bold text-black">Agrega tus datos</h1>
-          <p className="text-sm  text-gray-400">
-            Completa la información para crear tu cuenta
-          </p>
-        </div>
         <CrearUsuario
           info={info}
           setInfo={setInfo}

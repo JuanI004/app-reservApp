@@ -30,13 +30,13 @@ export default function AuthCallback() {
     return () => subscription.unsubscribe();
   }, [router]);
   return (
-    <div className="w-screen h-screen flex items-center justify-center bg-white">
+    <div className="w-screen h-screen flex items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4">
         <div
           className="w-10 h-10 border-2 border-t-transparent rounded-full animate-spin"
-          style={{ borderColor: "#2563EB", borderTopColor: "transparent" }}
+          style={{ borderColor: "#0f6e56", borderTopColor: "transparent" }}
         />
-        <p className="text-[#2563EB] text-lg ">Verificando cuenta...</p>
+        <p className="text-brand text-lg ">Verificando cuenta...</p>
       </div>
     </div>
   );
