@@ -17,6 +17,7 @@
 
 body {
   font-family: var(--font-body);
+  background-color: var(--color-background);
 }
 /* ===== FULLCALENDAR MODERN CLEAN UI ===== */
 

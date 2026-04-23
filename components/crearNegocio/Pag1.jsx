@@ -14,7 +14,6 @@ const categorias = [
   { value: "tatuajes", label: "Tatuajes & Piercings" },
   { value: "spa", label: "Spa" },
   { value: "clinica", label: "Clínica" },
-  { value: "Otro", label: "Otro" },
 ];
 
 import { useState } from "react";

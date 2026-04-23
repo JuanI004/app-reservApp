@@ -48,7 +48,7 @@ const PASOS = {
 export default function MainPage() {
   return (
     <div className="w-screen min-h-screen pt-[85px] max-w-[920px] mx-auto p-4 flex flex-col justify-center items-center">
-      <main className="min-h-screen flex flex-col gap-10 items-center justify-center">
+      <main className="min-h-screen overflow-hidden flex flex-col gap-10 items-center justify-center">
         <section>
           <h1 className="text-[3.2rem] font-display font-[800] text-center m-0 leading-none">
             Tu agenda,
