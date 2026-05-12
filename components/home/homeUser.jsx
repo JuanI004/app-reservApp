@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import SearchBar from "../ui/SearchBar";
-import Image from "next/image";
+import { useRouter } from "next/navigation";
 import CardNegocio from "../ui/cardNegocio";
 
 const categorias = [
@@ -24,6 +24,7 @@ export default function HomeUser() {
     orden: "mejorPuntaje",
     busqueda: "",
   });
+  const router = useRouter();
 
   useEffect(() => {
     let active = true;
@@ -209,6 +210,7 @@ export default function HomeUser() {
           {negociosFiltrados.map((negocio) => (
             <li
               key={negocio.id}
+              onClick={() => router.push(`/negocio/${negocio.idNegocio}`)}
               className="h-full hover:shadow-lg hover:scale-105 transition-all rounded-xl"
             >
               <CardNegocio negocio={negocio} />

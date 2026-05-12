@@ -3,10 +3,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../../lib/supabase";
 import Calendario from "./Calendario";
-import CrearServicio from "../agregarServicios/CrearServicio";
-import Button from "../ui/Button";
+import CrearServicio from "../../agregarServicios/CrearServicio";
+import Button from "../../ui/Button";
 
 /*const TABS = [
   { id: "calendario", label: "Calendario" },
