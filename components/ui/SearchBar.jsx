@@ -1,4 +1,12 @@
-export default function SearchBar({ value, onChange, ubicacion }) {
+import { useState } from "react";
+
+export default function SearchBar({ onClick, ubicacion }) {
+  const [inputValue, setInputValue] = useState("");
+
+  const handleChange = (e) => {
+    setInputValue(e.target.value);
+  };
+
   return (
     <div className="shadow-xl w-full bg-white items-center flex  p-2 rounded-[18px] ">
       <svg
@@ -14,8 +22,8 @@ export default function SearchBar({ value, onChange, ubicacion }) {
       <input
         type="text"
         placeholder="Barbería, peluquería, estética..."
-        value={value}
-        onChange={onChange}
+        value={inputValue}
+        onChange={handleChange}
         className="w-full bg-white px-4 py-2 rounded-xl focus:outline-none "
       />
       <div className="px-4 border-l flex items-center gap-2 border-[#999]">
@@ -30,7 +38,10 @@ export default function SearchBar({ value, onChange, ubicacion }) {
         </svg>
         <p className="text-[#666]">{ubicacion}</p>
       </div>
-      <button className="px-6 py-2 bg-brand hover:bg-brand/80 cursor-pointer text-white rounded-[12px] hover:bg-brand-dark transition-colors">
+      <button
+        className="px-6 py-2 bg-brand hover:bg-brand/80 cursor-pointer text-white rounded-[12px] hover:bg-brand-dark transition-colors"
+        onClick={() => onClick(inputValue)}
+      >
         Buscar
       </button>
     </div>

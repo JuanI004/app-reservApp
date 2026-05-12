@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import SearchBar from "../ui/SearchBar";
 import Image from "next/image";
+import CardNegocio from "../ui/cardNegocio";
 
 const categorias = [
   { value: "todos", label: "Todos" },
@@ -18,7 +19,11 @@ export default function HomeUser() {
   const [negocios, setNegocios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("todos");
+  const [filtroSeleccionado, setFiltroSeleccionado] = useState({
+    categoria: "todos",
+    orden: "mejorPuntaje",
+    busqueda: "",
+  });
 
   useEffect(() => {
     let active = true;
@@ -55,6 +60,31 @@ export default function HomeUser() {
       active = false;
     };
   }, []);
+
+  function aplicarFiltros(negocios) {
+    let filtrados = [...negocios];
+    if (filtroSeleccionado.categoria !== "todos") {
+      filtrados = filtrados.filter(
+        (neg) => neg.categoria === filtroSeleccionado.categoria,
+      );
+    }
+    if (filtroSeleccionado.busqueda) {
+      const busquedaLower = filtroSeleccionado.busqueda.toLowerCase();
+      filtrados = filtrados.filter(
+        (neg) => neg.nombre && neg.nombre.toLowerCase().includes(busquedaLower),
+      );
+    }
+    if (filtroSeleccionado.orden === "mejorPuntaje") {
+      filtrados.sort((a, b) => (b.puntaje || 0) - (a.puntaje || 0));
+    } else if (filtroSeleccionado.orden === "recientes") {
+      filtrados.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    } else if (filtroSeleccionado.orden === "nombre") {
+      filtrados.sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""));
+    }
+    return filtrados;
+  }
+
+  const negociosFiltrados = aplicarFiltros(negocios);
 
   if (loading) {
     return (
@@ -98,10 +128,12 @@ export default function HomeUser() {
           Encontrá tu <span className="text-[#74dfbd]">próximo turno</span>
         </h1>
         <SearchBar
-          value=""
           ubicacion="Montevideo"
-          onChange={() => {
-            /* Funcionalidad de búsqueda pendiente */
+          onClick={(value) => {
+            setFiltroSeleccionado({
+              ...filtroSeleccionado,
+              busqueda: value,
+            });
           }}
         />
       </section>
@@ -110,22 +142,52 @@ export default function HomeUser() {
         {categorias.map((cat) => (
           <button
             key={cat.value}
-            className={`px-4 h-8 cursor-pointer text-sm ${categoriaSeleccionada === cat.value ? "bg-brand text-white" : "bg-background text-[#666] border border-[#3333332c] hover:bg-brand/10 hover:text-brand hover:border-brand"}   rounded-full  transition-colors `}
-            onClick={() => setCategoriaSeleccionada(cat.value)}
+            className={`px-4 h-8 cursor-pointer text-sm ${filtroSeleccionado.categoria === cat.value ? "bg-brand text-white" : "bg-background text-[#666] border border-[#3333332c] hover:bg-brand/10 hover:text-brand hover:border-brand"}   rounded-full  transition-colors `}
+            onClick={() =>
+              setFiltroSeleccionado({
+                ...filtroSeleccionado,
+                categoria: cat.value,
+              })
+            }
           >
             {cat.label}
           </button>
         ))}
       </section>
       <div className="flex justify-between items-center">
-        <p className="text-sm text-[#666]">
-          <span className="font-bold">{negocios.length}</span> negocios
-          encontrados
-        </p>
+        <div className="flex items-center gap-4">
+          <p className="text-sm text-[#666]">
+            <span className="font-bold">{negociosFiltrados.length}</span>{" "}
+            negocios encontrados
+          </p>
+          {filtroSeleccionado.busqueda && (
+            <>
+              <p className="text-sm text-[#666]">|</p>
+              <p className="text-sm text-[#666]">Busqueda:</p>
+              <div className="px-2 h-8  flex gap-4 justify-between items-center  rounded-full text-sm border bg-brand/10 text-brand border-brand">
+                <p>{filtroSeleccionado.busqueda}</p>
+                <button
+                  onClick={() =>
+                    setFiltroSeleccionado({
+                      ...filtroSeleccionado,
+                      busqueda: "",
+                    })
+                  }
+                  className="text-xl mb-0.5 cursor-pointer text-brand hover:text-brand-dark transition-colors"
+                >
+                  x
+                </button>
+              </div>
+            </>
+          )}
+        </div>
         <select
           className="bg-white text-sm text-[#666] border border-[#3333332c] rounded-xl px-4 py-2 focus:outline-none  "
-          onChange={() => {
-            /* Funcionalidad de orden pendiente */
+          onChange={(event) => {
+            setFiltroSeleccionado({
+              ...filtroSeleccionado,
+              orden: event.target.value,
+            });
           }}
         >
           <option value="mejorPuntaje" className="font-sans">
@@ -140,41 +202,16 @@ export default function HomeUser() {
         </select>
       </div>
 
-      {negocios.length === 0 ? (
+      {negociosFiltrados.length === 0 ? (
         <p className="text-gray-600">No hay negocios cargados.</p>
       ) : (
         <ul className="space-y-3 grid sm:grid-cols-2 md:grid-cols-3  gap-4">
-          {negocios.map((negocio) => (
+          {negociosFiltrados.map((negocio) => (
             <li
               key={negocio.id}
-              className="relative bg-white h-full w-full rounded-xl "
+              className="h-full hover:shadow-lg hover:scale-105 transition-all rounded-xl"
             >
-              <div className="w-full h-32 bg-black relative rounded-t-xl ">
-                {negocio.image_url ? (
-                  <Image
-                    src={negocio.image_url}
-                    alt={negocio.nombre || "Sin nombre"}
-                    width={300}
-                    height={128}
-                    className=" absolute -bottom-5 left-5 border-2 border-white  rounded-xl w-15 h-15 object-cover "
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <p className="text-gray-500">Imagen no disponible</p>
-                  </div>
-                )}
-              </div>
-              <div className="pt-6 px-5">
-                <p className="font-[800] font-display text-gray-800">
-                  {negocio.nombre || "Sin nombre"}
-                </p>
-                <p className="text-sm text-gray-600 capitalize">
-                  {negocio.categoria || "Sin categoría"}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {negocio.direccion || "Sin dirección"}
-                </p>
-              </div>
+              <CardNegocio negocio={negocio} />
             </li>
           ))}
         </ul>
