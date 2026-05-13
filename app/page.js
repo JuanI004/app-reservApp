@@ -62,10 +62,16 @@ export default function MainPage() {
           empleados y horarios desde un solo lugar.
         </p>
         <section className="flex gap-4">
-          <button className="bg-brand cursor-pointer text-white py-3 px-6 rounded-full font-medium hover:bg-[#219e74] hover:scale-105 transition-all">
+          <button
+            onClick={() => {}}
+            className="bg-brand cursor-pointer text-white py-3 px-6 rounded-full font-medium hover:bg-[#219e74] hover:scale-105 transition-all"
+          >
             Explorar negocios
           </button>
-          <button className="bg-white cursor-pointer border border-brand text-brand py-3 px-6 rounded-full font-medium hover:bg-[#d1faf0] hover:scale-105 transition-all">
+          <button
+            onClick={() => {}}
+            className="bg-white cursor-pointer border border-brand text-brand py-3 px-6 rounded-full font-medium hover:bg-[#d1faf0] hover:scale-105 transition-all"
+          >
             Empezar gratis →
           </button>
         </section>

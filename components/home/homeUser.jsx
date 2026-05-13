@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import SearchBar from "../ui/SearchBar";
 import { useRouter } from "next/navigation";
-import CardNegocio from "../ui/cardNegocio";
+import CardNegocio from "../ui/CardNegocio";
 
 const categorias = [
   { value: "todos", label: "Todos" },
