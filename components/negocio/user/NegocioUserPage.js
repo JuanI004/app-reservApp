@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { supabase } from "../../../lib/supabase";
 
 const equipoPlaceholder = [
   {
@@ -49,6 +50,10 @@ const reseñas = [
 ];
 
 export default function NegocioUserPage({ negocio, session }) {
+  const [turnosOcupados, setTurnosOcupados] = useState([]);
+  const [cargandoTurnos, setCargandoTurnos] = useState(false);
+  const [mensaje, setMensaje] = useState([{}]);
+  const [confirmado, setConfirmado] = useState(false);
   const [selectedDia, setSelectedDia] = useState();
   const [formData, setFormData] = useState({
     servicio: null,
@@ -56,7 +61,82 @@ export default function NegocioUserPage({ negocio, session }) {
     dia: null,
     diaParseada: null,
     horario: null,
+    precio: null,
+    fechaDate: null,
   });
+
+  useEffect(() => {
+    if (!formData.fechaDate || !negocio?.idNegocio) return;
+
+    const fetchTurnos = async () => {
+      setCargandoTurnos(true);
+
+      let query = supabase
+        .from("Turnos")
+        .select("horaInicio")
+        .eq("idNegocio", negocio.idNegocio)
+        .eq("fecha", formData.fechaDate) // '2026-05-20'
+        .neq("estado", "cancelado");
+
+      if (formData.idEmpleado) {
+        query = query.eq("idEmpleado", formData.idEmpleado);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("Error trayendo turnos:", error.message);
+      } else {
+        setTurnosOcupados(data.map((t) => t.horaInicio)); // ['10:00', '11:30', ...]
+      }
+
+      setCargandoTurnos(false);
+    };
+
+    fetchTurnos();
+  }, [formData.fechaDate, formData.idEmpleado, negocio?.idNegocio]);
+
+  const calcularFin = (horaInicio, duracionMin) => {
+    const [h, m] = horaInicio.split(":").map(Number);
+    const total = h * 60 + m + Number(duracionMin);
+    return `${Math.floor(total / 60)
+      .toString()
+      .padStart(2, "0")}:${(total % 60).toString().padStart(2, "0")}`;
+  };
+
+  const handleConfirmar = async () => {
+    if (!session || !formData.servicio || !formData.horario || !formData.dia) {
+      alert("Por favor, completa todos los datos para reservar.");
+      return;
+    }
+    const servicioObj = negocio.servicios.find(
+      (s) => s.nombre === formData.servicio,
+    );
+    const { data, error } = await supabase.from("Turnos").insert({
+      idNegocio: negocio.idNegocio,
+      idEmpleado: formData.idEmpleado || null,
+      idUsuario: session.user.id,
+      servicio: formData.servicio,
+      fecha: formData.fechaDate,
+      horaInicio: formData.horario,
+      horaFin: calcularFin(formData.horario, servicioObj?.duracion || 30),
+      estado: "pendiente",
+    });
+    if (error) {
+      console.error("Error al reservar turno:", error.message);
+      setMensaje({
+        tipo: "confirmarError",
+        texto: "Error al reservar turno. Intenta de nuevo.",
+      });
+    } else {
+      setConfirmado(true);
+      setTurnosOcupados((prev) => [...prev, formData.horario]);
+      setMensaje({
+        tipo: "confirmarSuccess",
+        texto: "Turno reservado con éxito.",
+      });
+    }
+  };
 
   const generarTurnos = (desde, hasta, intervaloMin = 30) => {
     if (!desde || !hasta) return [];
@@ -394,6 +474,8 @@ export default function NegocioUserPage({ negocio, session }) {
                             " " +
                             dateObj.getDate(),
                           dia: diaNumero,
+                          fechaDate: dateObj.toLocaleDateString("en-CA"),
+                          horario: null,
                         }));
                       }}
                       disabled={isPast}
@@ -414,18 +496,33 @@ export default function NegocioUserPage({ negocio, session }) {
                 4 · Horario
               </p>
               <div className="grid grid-cols-3 gap-2 w-full">
-                {turnosDisponibles.map((turno, index) => (
-                  <button
-                    key={index}
-                    onClick={() =>
-                      setFormData((prev) => ({ ...prev, horario: turno }))
-                    }
-                    className={`w-full flex cursor-pointer justify-center items-center text-sm text-center px-4 py-2 ${formData.horario === turno ? " text-white bg-brand" : "bg-background border border-gray-300 hover:bg-brand/10 hover:border-brand"}   rounded-xl  transition-colors`}
-                  >
-                    {turno}
-                  </button>
-                ))}
-                {turnosDisponibles.length === 0 && (
+                {cargandoTurnos ? (
+                  <p className="col-span-3 text-sm text-gray-500 text-center">
+                    Cargando turnos...
+                  </p>
+                ) : (
+                  turnosDisponibles.map((turno, index) => {
+                    const estaOcupado = turnosOcupados.includes(turno);
+                    return (
+                      <button
+                        key={index}
+                        onClick={() =>
+                          setFormData((prev) => ({ ...prev, horario: turno }))
+                        }
+                        className={`w-full flex cursor-pointer justify-center items-center text-sm text-center px-4 py-2 ${
+                          estaOcupado
+                            ? "opacity-35 line-through bg-gray-100 border border-gray-200 cursor-not-allowed"
+                            : formData.horario === turno
+                              ? " text-white bg-brand"
+                              : "bg-background border border-gray-300 hover:bg-brand/10 hover:border-brand"
+                        }   rounded-xl  transition-colors`}
+                      >
+                        {turno}
+                      </button>
+                    );
+                  })
+                )}
+                {turnosDisponibles.length === 0 && !cargandoTurnos && (
                   <p className="col-span-3 text-sm text-gray-500 text-center">
                     No hay turnos disponibles para el día seleccionado.
                   </p>
@@ -448,7 +545,21 @@ export default function NegocioUserPage({ negocio, session }) {
                     </p>
                     <p className="text-sm text-black">${formData.precio}</p>
                   </div>
-                  <button className="w-full mt-4 bg-brand text-white py-2 rounded-full hover:bg-brand-dark transition-colors">
+                  {mensaje.texto && (
+                    <p
+                      className={`text-sm mt-2 ${
+                        mensaje.tipo === "confirmarSuccess"
+                          ? "p-2 bg-green-100 rounded-lg text-green-700 border border-green-700"
+                          : "p-2 bg-[#ef44443f] rounded-lg text-red-600 border border-red-600 text-sm mt-1"
+                      }`}
+                    >
+                      {mensaje.texto}
+                    </p>
+                  )}
+                  <button
+                    onClick={handleConfirmar}
+                    className="w-full mt-4 cursor-pointer bg-brand text-white py-2 rounded-full hover:bg-brand-dark transition-colors"
+                  >
                     Confirmar reserva
                   </button>
                 </div>
