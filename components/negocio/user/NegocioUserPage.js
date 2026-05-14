@@ -49,6 +49,53 @@ const reseñas = [
 ];
 
 export default function NegocioUserPage({ negocio, session }) {
+  const [selectedDia, setSelectedDia] = useState();
+  const [formData, setFormData] = useState({
+    servicio: null,
+    profesional: null,
+    dia: null,
+    diaParseada: null,
+    horario: null,
+  });
+
+  const generarTurnos = (desde, hasta, intervaloMin = 30) => {
+    if (!desde || !hasta) return [];
+
+    const [desdeH, desdeM] = desde.split(":").map(Number);
+    const [hastaH, hastaM] = hasta.split(":").map(Number);
+    if (
+      Number.isNaN(desdeH) ||
+      Number.isNaN(desdeM) ||
+      Number.isNaN(hastaH) ||
+      Number.isNaN(hastaM)
+    ) {
+      return [];
+    }
+
+    const inicio = desdeH * 60 + desdeM;
+    const fin = hastaH * 60 + hastaM;
+    if (fin <= inicio) return [];
+
+    const turnos = [];
+    for (let minutos = inicio; minutos < fin; minutos += intervaloMin) {
+      const h = Math.floor(minutos / 60)
+        .toString()
+        .padStart(2, "0");
+      const m = (minutos % 60).toString().padStart(2, "0");
+      turnos.push(`${h}:${m}`);
+    }
+    return turnos;
+  };
+
+  const horarioSeleccionado = negocio?.horarios?.find(
+    (h) => h?.dia === selectedDia && h?.activa,
+  );
+  const turnosDisponibles = generarTurnos(
+    horarioSeleccionado?.desde,
+    horarioSeleccionado?.hasta,
+    negocio?.tamTurno || 30,
+  );
+
   const INFO = [
     {
       icon: (
@@ -211,9 +258,11 @@ export default function NegocioUserPage({ negocio, session }) {
                 </span>
               </div>
               <div className="w-full p-4">
-                <h3 className=" text-sm">{negocio?.direccion.split(",")[0]}</h3>
+                <h3 className=" text-sm">
+                  {negocio?.direccion?.split(",")[0] || "Sin dirección"}
+                </h3>
                 <p className="text-xs text-gray-500 mt-1">
-                  {negocio?.direccion.split(",").slice(1).join(",") ||
+                  {negocio?.direccion?.split(",").slice(1).join(",") ||
                     "Sin dirección completa"}
                 </p>
               </div>
@@ -242,16 +291,23 @@ export default function NegocioUserPage({ negocio, session }) {
             </div>
           </section>
           <section>
-            <div className="sm:sticky bg-white p-4  border border-gray-200 rounded-xl">
+            <div className="sm:sticky bg-white p-4 flex flex-col justify-center items-center  border border-gray-200 rounded-t-xl">
               <h2 className="font-display font-[700] mb-2">Reservar turno</h2>
               <p className="text-gray-500 uppercase text-xs mb-4">
                 1 · Servicio
               </p>
-              <div className="flex flex-col gap-4">
-                {negocio?.servicios.map((servicio) => (
+              <div className="flex flex-col w-full gap-4">
+                {(negocio?.servicios ?? []).map((servicio) => (
                   <button
                     key={servicio.id}
-                    className="w-full flex cursor-pointer justify-between items-center text-sm text-left px-4 py-2 bg-background border border-gray-300 rounded-xl hover:bg-brand/10 hover:border-brand transition-colors"
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        servicio: servicio.nombre,
+                        precio: servicio.precio,
+                      }))
+                    }
+                    className={`w-full flex cursor-pointer justify-between items-center text-sm text-left px-4 py-2 ${formData.servicio === servicio.nombre ? " bg-brand/10 border-brand" : "bg-background border-gray-300"} border  rounded-xl hover:bg-brand/10 hover:border-brand transition-colors`}
                   >
                     <div>
                       <p>{servicio.nombre} </p>
@@ -271,7 +327,13 @@ export default function NegocioUserPage({ negocio, session }) {
                 {equipoPlaceholder.map((miembro, index) => (
                   <button
                     key={index}
-                    className="w-full flex flex-col  cursor-pointer justify-center items-center text-sm text-center px-4 py-2 bg-background border border-gray-300 rounded-xl hover:bg-brand/10 hover:border-brand transition-colors"
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        profesional: miembro.nombre,
+                      }))
+                    }
+                    className={`w-full flex flex-col  cursor-pointer justify-center items-center text-sm text-center px-4 py-2 ${formData.profesional === miembro.nombre ? " bg-brand/10 border-brand" : "bg-background border-gray-300"} border  rounded-xl hover:bg-brand/10 hover:border-brand transition-colors`}
                   >
                     <div
                       className="w-8 h-8 rounded-full bg flex items-center justify-center text-white font-bold mb-1"
@@ -298,6 +360,7 @@ export default function NegocioUserPage({ negocio, session }) {
                   const dateCopy = new Date(dateObj);
                   dateCopy.setHours(0, 0, 0, 0);
                   const isToday = dateCopy.getTime() === today.getTime();
+                  const isSelected = selectedDia === diaNumero;
                   const isPast = dateCopy.getTime() < today.getTime();
 
                   const baseClasses =
@@ -309,7 +372,7 @@ export default function NegocioUserPage({ negocio, session }) {
                   const pastClasses =
                     "opacity-50 bg-transparent border border-transparent cursor-not-allowed";
 
-                  const appliedClasses = isToday
+                  const appliedClasses = isSelected
                     ? `${baseClasses} ${todayClasses}`
                     : isPast
                       ? `${baseClasses} ${pastClasses}`
@@ -319,8 +382,22 @@ export default function NegocioUserPage({ negocio, session }) {
                     <button
                       key={idx}
                       className={appliedClasses}
+                      onClick={() => {
+                        setSelectedDia(diaNumero);
+                        console.log(formData);
+                        setFormData((prev) => ({
+                          ...prev,
+                          diaParseada:
+                            ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"][
+                              idx
+                            ] +
+                            " " +
+                            dateObj.getDate(),
+                          dia: diaNumero,
+                        }));
+                      }}
                       disabled={isPast}
-                      aria-pressed={isToday}
+                      aria-pressed={isSelected}
                       title={isPast ? "Día pasado" : "Seleccionar día"}
                     >
                       <label className="">
@@ -336,7 +413,46 @@ export default function NegocioUserPage({ negocio, session }) {
               <p className="text-gray-500 uppercase text-xs my-4">
                 4 · Horario
               </p>
+              <div className="grid grid-cols-3 gap-2 w-full">
+                {turnosDisponibles.map((turno, index) => (
+                  <button
+                    key={index}
+                    onClick={() =>
+                      setFormData((prev) => ({ ...prev, horario: turno }))
+                    }
+                    className={`w-full flex cursor-pointer justify-center items-center text-sm text-center px-4 py-2 ${formData.horario === turno ? " text-white bg-brand" : "bg-background border border-gray-300 hover:bg-brand/10 hover:border-brand"}   rounded-xl  transition-colors`}
+                  >
+                    {turno}
+                  </button>
+                ))}
+                {turnosDisponibles.length === 0 && (
+                  <p className="col-span-3 text-sm text-gray-500 text-center">
+                    No hay turnos disponibles para el día seleccionado.
+                  </p>
+                )}
+              </div>
             </div>
+            {formData.servicio &&
+              formData.horario &&
+              formData.precio &&
+              formData.diaParseada && (
+                <div className="w-full bg-background p-4  border border-gray-200 rounded-b-xl">
+                  <p className="text-sm text-gray-700">
+                    {formData.servicio}{" "}
+                    {formData.profesional && `· ${formData.profesional}`}
+                  </p>
+
+                  <div className="flex justify-between">
+                    <p className="text-sm text-gray-700">
+                      {formData.diaParseada} {formData.horario}
+                    </p>
+                    <p className="text-sm text-black">${formData.precio}</p>
+                  </div>
+                  <button className="w-full mt-4 bg-brand text-white py-2 rounded-full hover:bg-brand-dark transition-colors">
+                    Confirmar reserva
+                  </button>
+                </div>
+              )}
           </section>
         </main>
       </div>

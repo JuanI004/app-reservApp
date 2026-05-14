@@ -1,4 +1,5 @@
 import features from "../utils/features";
+import Link from "next/link";
 
 const MOCKUP_INFO = [
   {
@@ -62,18 +63,18 @@ export default function MainPage() {
           empleados y horarios desde un solo lugar.
         </p>
         <section className="flex gap-4">
-          <button
-            onClick={() => {}}
+          <Link
+            href="/Home"
             className="bg-brand cursor-pointer text-white py-3 px-6 rounded-full font-medium hover:bg-[#219e74] hover:scale-105 transition-all"
           >
             Explorar negocios
-          </button>
-          <button
-            onClick={() => {}}
+          </Link>
+          <Link
+            href="/signup"
             className="bg-white cursor-pointer border border-brand text-brand py-3 px-6 rounded-full font-medium hover:bg-[#d1faf0] hover:scale-105 transition-all"
           >
             Empezar gratis →
-          </button>
+          </Link>
         </section>
         <div className="w-[80%] mt-4 mx-auto rounded-full shadow-[0_70px_70px_rgba(0,0,0,0.1),_0_1px_10px_rgba(0,0,0,0.05)]">
           <header className="p-4 flex gap-1 items-center bg-brand rounded-t-xl w-full">
