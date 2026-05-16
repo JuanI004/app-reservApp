@@ -15,6 +15,7 @@ export default function NegocioOwnerPage({ negocio, session }) {
 
   useEffect(() => {
     fetchTurnos();
+    setLoading(false);
   }, []);
 
   async function fetchTurnos() {
@@ -39,7 +40,7 @@ export default function NegocioOwnerPage({ negocio, session }) {
     }
   }
 
-  if (loading) return <div className="p-10">Cargando...</div>;
+  if (loading) return <div className="p-10 mt-20">Cargando...</div>;
   if (error) return <div className="p-10 text-red-500">{error}</div>;
 
   return <PanelNegocio negocio={negocio} turnos={turnos} />;

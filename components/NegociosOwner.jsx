@@ -27,7 +27,7 @@ export default function NegociosOwner() {
       const { data, error } = await supabase
         .from("Negocios")
         .select("*")
-        .eq("idDueño", user.id); 
+        .eq("idDueño", user.id);
 
       if (error) {
         setError(error.message);
@@ -51,7 +51,7 @@ export default function NegociosOwner() {
   return (
     <div className="grid gap-4 mt-6">
       {negocios.map((negocio) => (
-        <Link href={`/owner/negocio/${negocio.idNegocio}`} key={negocio.idNegocio}>
+        <Link href={`/negocio/${negocio.idNegocio}`} key={negocio.idNegocio}>
           <div
             key={negocio.idNegocio}
             className="p-4 bg-white rounded-lg shadow-md flex gap-4 items-center"

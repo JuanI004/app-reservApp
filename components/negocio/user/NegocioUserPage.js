@@ -51,7 +51,8 @@ const reseñas = [
 
 export default function NegocioUserPage({ negocio, session }) {
   const [turnosOcupados, setTurnosOcupados] = useState([]);
-  const [cargandoTurnos, setCargandoTurnos] = useState(false);
+  const [negocioInfo, setNegocioInfo] = useState(null);
+  const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState([{}]);
   const [confirmado, setConfirmado] = useState(false);
   const [selectedDia, setSelectedDia] = useState();
@@ -64,6 +65,40 @@ export default function NegocioUserPage({ negocio, session }) {
     precio: null,
     fechaDate: null,
   });
+
+  useEffect(() => {
+    if (!negocio?.idNegocio) return;
+    const fetchEmpleados = async () => {
+      const { data, error } = await supabase
+        .from("Empleados")
+        .select("idEmpleado, nombre, rol, servicios, image_url")
+        .eq("idNegocio", negocio?.idNegocio);
+
+      if (error) {
+        console.error("Error trayendo empleados:", error.message);
+      } else {
+        setNegocioInfo((prev) => ({ ...prev, empleados: data }));
+        setCargando(false);
+      }
+    };
+    const fetchOwner = async () => {
+      if (!negocio?.idDueño) return;
+
+      const { data, error } = await supabase
+        .from("Duenos")
+        .select("idDueño, nombre, apellido, email, image_url")
+        .eq("idDueño", negocio.idDueño)
+        .single();
+
+      if (error) {
+        console.error("Error trayendo dueño:", error.message);
+      } else {
+        setNegocioInfo((prev) => ({ ...prev, dueño: data }));
+      }
+    };
+    fetchEmpleados();
+    fetchOwner();
+  }, [negocio?.idNegocio, negocio?.idDueño]);
 
   useEffect(() => {
     if (!formData.fechaDate || !negocio?.idNegocio) return;
@@ -89,8 +124,6 @@ export default function NegocioUserPage({ negocio, session }) {
       } else {
         setTurnosOcupados(data.map((t) => t.horaInicio)); // ['10:00', '11:30', ...]
       }
-
-      setCargandoTurnos(false);
     };
 
     fetchTurnos();
@@ -237,7 +270,7 @@ export default function NegocioUserPage({ negocio, session }) {
       value: "~10 min",
     },
   ];
-  console.log(negocio);
+  console.log(negocioInfo);
 
   const weekDates = (() => {
     const now = new Date();
@@ -306,18 +339,51 @@ export default function NegocioUserPage({ negocio, session }) {
             </div>
             <div className="bg-white p-4  border border-gray-200 rounded-xl">
               <h2 className="font-display font-[700]">Nuestro Equipo</h2>
+
               <div className="mt-4 flex flex-col gap-4">
-                {equipoPlaceholder.map((miembro, index) => (
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-[#d1d1d1] flex items-center justify-center text-gray-700 font-medium">
+                    {negocioInfo?.dueño?.image_url ? (
+                      <Image
+                        width={40}
+                        height={40}
+                        src={negocioInfo.dueño.image_url}
+                        alt={negocioInfo.dueño.nombre}
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : negocioInfo?.dueño?.nombre ? (
+                      negocioInfo?.dueño?.nombre.charAt(0).toUpperCase()
+                    ) : (
+                      "?"
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">
+                      {negocioInfo?.dueño?.nombre}
+                    </p>
+                    <p className="text-xs text-gray-500">Dueño</p>
+                  </div>
+                </div>
+                {negocioInfo?.empleados?.map((miembro, index) => (
                   <div key={index} className="flex items-center gap-4">
-                    <div
-                      className="w-10 h-10 rounded-full bg flex items-center justify-center text-white font-bold"
-                      style={{ backgroundColor: miembro.color }}
-                    >
-                      {miembro.icon}
+                    <div className="w-10 h-10 rounded-full bg-[#d1d1d1] flex items-center justify-center text-gray-700 font-medium">
+                      {miembro.image_url ? (
+                        <Image
+                          width={40}
+                          height={40}
+                          src={miembro.image_url}
+                          alt={miembro.nombre}
+                          className="w-full h-full object-cover rounded-full"
+                        />
+                      ) : miembro.nombre ? (
+                        miembro.nombre.charAt(0).toUpperCase()
+                      ) : (
+                        "?"
+                      )}
                     </div>
                     <div>
                       <p className="text-sm font-medium">{miembro.nombre}</p>
-                      <p className="text-xs text-gray-500">{miembro.cargo}</p>
+                      <p className="text-xs text-gray-500">{miembro.rol}</p>
                     </div>
                   </div>
                 ))}
@@ -404,7 +470,31 @@ export default function NegocioUserPage({ negocio, session }) {
                 2 · Profesional
               </p>
               <div className="flex  gap-4">
-                {equipoPlaceholder.map((miembro, index) => (
+                <button
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      profesional: negocioInfo?.dueño?.nombre,
+                    }))
+                  }
+                  className={`w-full flex flex-col  cursor-pointer justify-center items-center text-sm text-center px-4 py-2 ${formData.profesional === negocioInfo?.dueño?.nombre ? " bg-brand/10 border-brand" : "bg-background border-gray-300"} border  rounded-xl hover:bg-brand/10 hover:border-brand transition-colors`}
+                >
+                  {negocioInfo?.dueño?.image_url ? (
+                    <Image
+                      alt={negocioInfo?.dueño?.nombre || "Dueño"}
+                      width={40}
+                      height={40}
+                      className="rounded-full w-8 h-8 object-cover mb-1"
+                      src={negocioInfo?.dueño?.image_url}
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg flex items-center justify-center text-white font-bold mb-1">
+                      ?
+                    </div>
+                  )}
+                  <p className="text-xs">{negocioInfo?.dueño?.nombre}</p>
+                </button>
+                {negocioInfo?.empleados?.map((miembro, index) => (
                   <button
                     key={index}
                     onClick={() =>
@@ -415,12 +505,22 @@ export default function NegocioUserPage({ negocio, session }) {
                     }
                     className={`w-full flex flex-col  cursor-pointer justify-center items-center text-sm text-center px-4 py-2 ${formData.profesional === miembro.nombre ? " bg-brand/10 border-brand" : "bg-background border-gray-300"} border  rounded-xl hover:bg-brand/10 hover:border-brand transition-colors`}
                   >
-                    <div
-                      className="w-8 h-8 rounded-full bg flex items-center justify-center text-white font-bold mb-1"
-                      style={{ backgroundColor: miembro.color }}
-                    >
-                      {miembro.icon}
-                    </div>
+                    {miembro.image_url ? (
+                      <Image
+                        alt={miembro.nombre || "Empleado"}
+                        width={40}
+                        height={40}
+                        className="rounded-full w-8 h-8 object-cover mb-1"
+                        src={miembro.image_url}
+                      />
+                    ) : (
+                      <div
+                        className="w-8 h-8 rounded-full bg flex items-center justify-center text-white font-bold mb-1"
+                        style={{ backgroundColor: miembro.color }}
+                      >
+                        ?
+                      </div>
+                    )}
                     <p className="text-xs">{miembro.nombre}</p>
                   </button>
                 ))}
@@ -496,9 +596,9 @@ export default function NegocioUserPage({ negocio, session }) {
                 4 · Horario
               </p>
               <div className="grid grid-cols-3 gap-2 w-full">
-                {cargandoTurnos ? (
+                {cargando ? (
                   <p className="col-span-3 text-sm text-gray-500 text-center">
-                    Cargando turnos...
+                    Cargando ...
                   </p>
                 ) : (
                   turnosDisponibles.map((turno, index) => {
@@ -522,7 +622,7 @@ export default function NegocioUserPage({ negocio, session }) {
                     );
                   })
                 )}
-                {turnosDisponibles.length === 0 && !cargandoTurnos && (
+                {turnosDisponibles.length === 0 && !cargando && (
                   <p className="col-span-3 text-sm text-gray-500 text-center">
                     No hay turnos disponibles para el día seleccionado.
                   </p>
