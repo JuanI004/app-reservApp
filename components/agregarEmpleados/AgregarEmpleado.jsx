@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import Image from "next/image";
@@ -12,8 +12,25 @@ export default function AgregarEmpleado({ idNegocio }) {
   const [rol, setRol] = useState("");
   const [loading, setLoading] = useState(false);
   const [buscando, setBuscando] = useState(false);
+  const [servicios, setServicios] = useState([]);
+  const [serviciosSeleccionados, setServiciosSeleccionados] = useState([]);
   const [usuarioEncontrado, setUsuarioEncontrado] = useState(null);
   const [mensaje, setMensaje] = useState(null);
+
+  useEffect(() => {
+    const fetchServicios = async () => {
+      const { data, error } = await supabase
+        .from("Negocios")
+        .select("servicios")
+        .eq("idNegocio", idNegocio)
+        .single();
+      if (!error) {
+        setServicios(data.servicios || []);
+      }
+    };
+
+    fetchServicios();
+  }, []);
 
   const buscarUsuario = async () => {
     if (!email.trim()) return;
@@ -57,6 +74,7 @@ export default function AgregarEmpleado({ idNegocio }) {
       idNegocio: parseInt(idNegocio),
       idEmpleado: usuarioEncontrado.idCliente,
       image_url: usuarioEncontrado.image_url || null,
+      servicios: serviciosSeleccionados,
       nombre: usuarioEncontrado.nombre
         ? `${usuarioEncontrado.nombre} ${usuarioEncontrado.apellido ?? ""}`.trim()
         : email,
@@ -83,10 +101,23 @@ export default function AgregarEmpleado({ idNegocio }) {
       });
       setEmail("");
       setRol("");
+      setServiciosSeleccionados([]);
       setUsuarioEncontrado(null);
     }
 
     setLoading(false);
+  };
+
+  const toggleServicio = (servicio) => {
+    setServiciosSeleccionados((prev) => {
+      const existe = prev.find((s) => s.nombre === servicio.nombre);
+
+      if (existe) {
+        return prev.filter((s) => s.nombre !== servicio.nombre);
+      } else {
+        return [...prev, servicio];
+      }
+    });
   };
 
   return (
@@ -150,6 +181,22 @@ export default function AgregarEmpleado({ idNegocio }) {
         onChange={(e) => setRol(e.target.value)}
         className="w-full border p-2 text-sm"
       />
+      <div>
+        <h3 className="font-semibold">Asignar servicios (opcional)</h3>
+
+        {servicios.map((s) => (
+          <label key={s.nombre} className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={serviciosSeleccionados.some(
+                (selected) => selected.nombre === s.nombre,
+              )}
+              onChange={() => toggleServicio(s)}
+            />
+            {s.nombre}
+          </label>
+        ))}
+      </div>
       {mensaje && (
         <p
           className={`text-sm p-2 rounded-lg border ${
