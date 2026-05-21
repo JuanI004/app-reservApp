@@ -79,7 +79,7 @@ export default function PanelNegocio({ negocio, turnos }) {
           }`}
         >
           <div className="bg-white p-4 rounded shadow">
-            <CrearServicio />
+            <CrearServicio idNegocio={negocio?.idNegocio} />
           </div>
         </div>
       )}
