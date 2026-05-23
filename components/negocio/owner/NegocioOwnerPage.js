@@ -10,35 +10,30 @@ export default function NegocioOwnerPage({ negocio, session }) {
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState(null);
   const [turnos, setTurnos] = useState([]);
-
-  useEffect(() => {
-    fetchTurnos();
-    setLoading(false);
-  }, []);
 
   async function fetchTurnos() {
     const { data, error } = await supabase
       .from("Turnos")
-      .select(
-        `
-    idTurno,
-    fecha_inicio,
-    fecha_fin,
-    Clientes (
-      nombre
-    )
-  `,
-      )
+      .select("*")
       .eq("idNegocio", negocio?.idNegocio);
 
     if (error) {
-      console.log(error);
+      console.error("Error trayendo turnos:", error.message);
     } else {
       setTurnos(data);
     }
   }
+
+  useEffect(() => {
+    if (!negocio) {
+      return;
+    }
+    fetchTurnos();
+    setLoading(false);
+  }, [negocio]);
 
   if (loading) return <div className="p-10 mt-20">Cargando...</div>;
   if (error) return <div className="p-10 text-red-500">{error}</div>;
