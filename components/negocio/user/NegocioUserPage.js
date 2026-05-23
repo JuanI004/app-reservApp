@@ -104,7 +104,7 @@ export default function NegocioUserPage({ negocio, session }) {
     if (!formData.fechaDate || !negocio?.idNegocio) return;
 
     const fetchTurnos = async () => {
-      setCargandoTurnos(true);
+      setCargando(true);
 
       let query = supabase
         .from("Turnos")
@@ -122,6 +122,7 @@ export default function NegocioUserPage({ negocio, session }) {
       if (error) {
         console.error("Error trayendo turnos:", error.message);
       } else {
+        setCargando(false);
         setTurnosOcupados(data.map((t) => t.horaInicio)); // ['10:00', '11:30', ...]
       }
     };
@@ -272,19 +273,42 @@ export default function NegocioUserPage({ negocio, session }) {
   ];
   console.log(negocioInfo);
 
-  const weekDates = (() => {
+  const getWeekDates = (offsetWeeks = 0) => {
     const now = new Date();
     const day = now.getDay();
     const diffToMonday = (day + 6) % 7;
     const monday = new Date(now);
     monday.setHours(0, 0, 0, 0);
-    monday.setDate(now.getDate() - diffToMonday);
+    monday.setDate(now.getDate() - diffToMonday + offsetWeeks * 7);
+
     return Array.from({ length: 7 }).map((_, i) => {
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
       return d;
     });
-  })();
+  };
+
+  const weekDatesActuales = getWeekDates();
+  const tieneDiasSeleccionables = weekDatesActuales.some((dateObj, idx) => {
+    const diaNumero = idx + 1;
+    const horario = negocio?.horarios?.find(
+      (h) => h?.dia === diaNumero && h?.activa,
+    );
+
+    if (!horario) return false;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const dateCopy = new Date(dateObj);
+    dateCopy.setHours(0, 0, 0, 0);
+
+    return dateCopy.getTime() >= today.getTime();
+  });
+
+  const weekDates = tieneDiasSeleccionables
+    ? weekDatesActuales
+    : getWeekDates(1);
 
   return (
     <>
