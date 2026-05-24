@@ -2,59 +2,16 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabase";
 import Image from "next/image";
 
-export default function ListaTurnos({ turnos }) {
+export default function ListaTurnos({ turnos = [], personalTurnos = {} }) {
   const [filtro, setFiltro] = useState("Todos");
   const [nombresUsuarios, setNombresUsuarios] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
-  const ESTADOS = [
-    { label: "Todos", cant: turnos.length },
-    {
-      label: "Pendientes",
-      value: "pendiente",
-      cant: turnos?.filter((t) => t.estado === "pendiente").length,
-    },
-    {
-      label: "Cancelados",
-      value: "cancelado",
-      cant: turnos?.filter((t) => t.estado === "cancelado").length,
-    },
-    {
-      label: "Confirmados",
-      value: "confirmado",
-      cant: turnos?.filter((t) => t.estado === "confirmado").length,
-    },
-  ];
+
   useEffect(() => {
     const idsUsuarios = [
       ...new Set(turnos.map((turno) => turno.idUsuario).filter(Boolean)),
     ];
-    const idEmpleados = [
-      ...new Set(turnos.map((turno) => turno.idEmpleado).filter(Boolean)),
-    ];
 
-    if (idsUsuarios.length === 0 && idEmpleados.length === 0) return;
-
-    const fetchNombresEmpleados = async () => {
-      const { data, error } = await supabase
-        .from("Empleados")
-        .select("idEmpleado, nombre,  image_url")
-        .in("idEmpleado", idEmpleados);
-
-      if (error) {
-        console.error("Error trayendo nombre de empleado:", error.message);
-        return;
-      }
-
-      const nombresMapeados = (data ?? []).reduce((acc, empleado) => {
-        acc[empleado.idEmpleado] = {
-          nombre: `${empleado.nombre ?? ""}`.trim() || "Desconocido",
-          image_url: empleado.image_url,
-        };
-        return acc;
-      }, {});
-
-      setNombresUsuarios((prev) => ({ ...prev, ...nombresMapeados }));
-    };
+    if (idsUsuarios.length === 0) return;
 
     const fetchNombresUsuarios = async () => {
       const { data, error } = await supabase
@@ -74,12 +31,29 @@ export default function ListaTurnos({ turnos }) {
         return acc;
       }, {});
 
-      setNombresUsuarios(nombresMapeados);
+      setNombresUsuarios((prev) => ({ ...prev, ...nombresMapeados }));
     };
-    fetchNombresEmpleados();
     fetchNombresUsuarios();
-    setIsLoading(false);
   }, [turnos]);
+
+  const ESTADOS = [
+    { label: "Todos", cant: turnos.length },
+    {
+      label: "Pendientes",
+      value: "pendiente",
+      cant: turnos?.filter((t) => t.estado === "pendiente").length,
+    },
+    {
+      label: "Cancelados",
+      value: "cancelado",
+      cant: turnos?.filter((t) => t.estado === "cancelado").length,
+    },
+    {
+      label: "Confirmados",
+      value: "confirmado",
+      cant: turnos?.filter((t) => t.estado === "confirmado").length,
+    },
+  ];
 
   const obtenerNombreUsuario = (turno) => {
     return nombresUsuarios[turno.idUsuario] || "Desconocido";
@@ -95,8 +69,13 @@ export default function ListaTurnos({ turnos }) {
     const partes = date.toLocaleDateString("es-AR", opciones).split(" ");
     return `${partes[0]} ${partes[1]} de ${partes[3]}`;
   }
+
+  const turnosFiltrados =
+    filtro === "Todos"
+      ? turnos
+      : turnos.filter((t) => t.estado + "s" === filtro.toLowerCase());
   return (
-    <div className="bg-white  rounded-lg  py-5">
+    <div className="bg-white w-full rounded-xl  pt-5">
       <h2 className="text-lg font-display px-6 font-bold mb-4">
         Turnos — {formatearFecha(fechaHoy)}
       </h2>
@@ -121,14 +100,11 @@ export default function ListaTurnos({ turnos }) {
         ))}
       </div>
       <div className="">
-        {turnos
-          .filter(
-            (t) => filtro === "Todos" || t.estado === filtro.toLowerCase(),
-          )
-          .map((turno) => (
+        {turnosFiltrados.length > 0 ? (
+          turnosFiltrados.map((turno) => (
             <div
               key={turno.idTurno}
-              className="border-b border-gray-200 p-6  flex items-center justify-between"
+              className="border-t border-gray-200 p-6  flex items-center justify-between"
             >
               <div className="flex items-center  gap-3">
                 <div className="border-r border-gray-300 flex flex-col items-center pr-3">
@@ -139,33 +115,87 @@ export default function ListaTurnos({ turnos }) {
                   <p className="text-xs text-gray-500">{turno.duracion} min</p>
                 </div>
                 <div>
-                  <p className="font-semibold">{obtenerNombreUsuario(turno)}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="font-semibold text-sm">
+                    {obtenerNombreUsuario(turno)}
+                  </p>
+                  <p className="text-xs text-gray-500">
                     {turno.servicio || "Servicio Desconocido"}
                   </p>
                   <div>
-                    {turno.idEmpleado && (
-                      <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-2 mt-1">
+                      {personalTurnos[turno.idEmpleado]?.image_url ? (
                         <Image
-                          src={
-                            nombresUsuarios[turno.idEmpleado]?.image_url ||
-                            "/default-avatar.png"
-                          }
+                          src={personalTurnos[turno.idEmpleado]?.image_url}
                           alt="Avatar Empleado"
-                          className="w-6 h-6 rounded-full object-cover"
+                          width={24}
+                          height={24}
+                          className="w-5 h-5 rounded-full object-cover"
                         />
-                        <span className="text-sm text-gray-500">
-                          {nombresUsuarios[turno.idEmpleado]?.nombre ||
-                            "Empleado Desconocido"}
-                        </span>
-                      </div>
-                    )}
-                    <p>{nombresUsuarios[turno.idEmpleado]?.nombre}</p>
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-brand flex items-center justify-center text-white text-xs font-bold">
+                          {personalTurnos[turno.idEmpleado]?.nombre
+                            ? personalTurnos[turno.idEmpleado].nombre
+                                .charAt(0)
+                                .toUpperCase()
+                            : "?"}
+                        </div>
+                      )}
+                      <span className="text-xs text-gray-500">
+                        {personalTurnos[turno.idEmpleado]?.nombre ||
+                          "Empleado Desconocido"}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
+              <div className="flex gap-2 items-center">
+                <p
+                  className={`px-3 py-1 rounded-full capitalize  text-xs font-medium ${
+                    turno.estado === "pendiente"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : turno.estado === "confirmado"
+                        ? "bg-green-100 text-green-800"
+                        : turno.estado === "cancelado"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-gray-100 text-gray-800"
+                  }`}
+                >
+                  {turno.estado}
+                </p>
+                {turno.estado === "pendiente" && (
+                  <button className="p-2 cursor-pointer border border-gray-300 rounded-full hover:bg-brand/10 hover:border-brand hover:text-brand transition-colors">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="15"
+                      height="15"
+                      fill="currentColor"
+                      viewBox="0 0 256 256"
+                    >
+                      <path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"></path>
+                    </svg>
+                  </button>
+                )}
+                {turno.estado !== "cancelado" && (
+                  <button className="p-2 cursor-pointer border border-gray-300 rounded-full hover:bg-red-100 hover:border-red-400 hover:text-red-600 transition-colors">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="15"
+                      height="15"
+                      fill="currentColor"
+                      viewBox="0 0 256 256"
+                    >
+                      <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+                    </svg>
+                  </button>
+                )}
+              </div>
             </div>
-          ))}
+          ))
+        ) : (
+          <div className="p-10 text-center text-gray-500">
+            No hay turnos para mostrar.
+          </div>
+        )}
       </div>
     </div>
   );

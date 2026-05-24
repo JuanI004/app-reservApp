@@ -2,27 +2,6 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { supabase } from "../../../lib/supabase";
 
-const equipoPlaceholder = [
-  {
-    icon: "JS",
-    nombre: "Juan Sanchez",
-    cargo: "Desarrollador",
-    color: "#1d9e75",
-  },
-  {
-    icon: "MS",
-    nombre: "Maria Sanchez",
-    cargo: "Atención al cliente",
-    color: "#378add",
-  },
-  {
-    icon: "RS",
-    nombre: "Rosa Sanchez",
-    cargo: "Administración",
-    color: "#D85A30",
-  },
-];
-
 const reseñas = [
   {
     id: 1,
@@ -59,6 +38,7 @@ export default function NegocioUserPage({ negocio, session }) {
   const [formData, setFormData] = useState({
     servicio: null,
     profesional: null,
+    idEmpleado: null,
     dia: null,
     diaParseada: null,
     horario: null,
@@ -498,10 +478,11 @@ export default function NegocioUserPage({ negocio, session }) {
                   onClick={() =>
                     setFormData((prev) => ({
                       ...prev,
+                      idEmpleado: negocioInfo?.dueño?.id,
                       profesional: negocioInfo?.dueño?.nombre,
                     }))
                   }
-                  className={`w-full flex flex-col  cursor-pointer justify-center items-center text-sm text-center px-4 py-2 ${formData.profesional === negocioInfo?.dueño?.nombre ? " bg-brand/10 border-brand" : "bg-background border-gray-300"} border  rounded-xl hover:bg-brand/10 hover:border-brand transition-colors`}
+                  className={`w-full flex flex-col  cursor-pointer justify-center items-center text-sm text-center px-4 py-2 ${formData.idEmpleado === negocioInfo?.dueño?.id ? " bg-brand/10 border-brand" : "bg-background border-gray-300"} border  rounded-xl hover:bg-brand/10 hover:border-brand transition-colors`}
                 >
                   {negocioInfo?.dueño?.image_url ? (
                     <Image
@@ -524,10 +505,11 @@ export default function NegocioUserPage({ negocio, session }) {
                     onClick={() =>
                       setFormData((prev) => ({
                         ...prev,
+                        idEmpleado: miembro.id,
                         profesional: miembro.nombre,
                       }))
                     }
-                    className={`w-full flex flex-col  cursor-pointer justify-center items-center text-sm text-center px-4 py-2 ${formData.profesional === miembro.nombre ? " bg-brand/10 border-brand" : "bg-background border-gray-300"} border  rounded-xl hover:bg-brand/10 hover:border-brand transition-colors`}
+                    className={`w-full flex flex-col  cursor-pointer justify-center items-center text-sm text-center px-4 py-2 ${formData.idEmpleado === miembro.id ? " bg-brand/10 border-brand" : "bg-background border-gray-300"} border  rounded-xl hover:bg-brand/10 hover:border-brand transition-colors`}
                   >
                     {miembro.image_url ? (
                       <Image

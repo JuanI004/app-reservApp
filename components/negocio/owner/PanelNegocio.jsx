@@ -1,13 +1,69 @@
 // components/negocio/PanelNegocio.jsx
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { supabase } from "../../../lib/supabase";
 import ListaTurnos from "./ListaTurnos";
+import Image from "next/image";
 
-export default function PanelNegocio({ negocio, turnos }) {
-  const router = useRouter();
-  const [mostrar, setMostrar] = useState(null);
+export default function PanelNegocio({ negocio, turnos = [] }) {
+  const [personalTurnos, setPersonalTurnos] = useState({});
+
+  useEffect(() => {
+    if (!negocio?.idNegocio) return;
+
+    let activo = true;
+
+    const fetchPersonalTurnos = async () => {
+      const { data: empleados, error: errorEmpleados } = await supabase
+        .from("Empleados")
+        .select("idEmpleado, nombre, image_url")
+        .eq("idNegocio", negocio.idNegocio);
+
+      const { data: duenio, error: errorDuenio } = negocio?.idDueño
+        ? await supabase
+            .from("Duenos")
+            .select("idDueño, nombre, apellido, image_url")
+            .eq("idDueño", negocio.idDueño)
+            .single()
+        : { data: null, error: null };
+
+      if (!activo) return;
+
+      if (errorEmpleados) {
+        console.error("Error trayendo empleados:", errorEmpleados.message);
+      }
+
+      if (errorDuenio) {
+        console.error("Error trayendo dueño:", errorDuenio.message);
+      }
+
+      const personalMapeado = (empleados ?? []).reduce((acc, empleado) => {
+        acc[empleado.idEmpleado] = {
+          nombre: empleado.nombre || "Desconocido",
+          image_url: empleado.image_url,
+        };
+        return acc;
+      }, {});
+
+      if (duenio) {
+        personalMapeado[duenio.idDueño] = {
+          nombre:
+            `${duenio.nombre ?? ""} ${duenio.apellido ?? ""}`.trim() ||
+            "Desconocido",
+          image_url: duenio.image_url,
+        };
+      }
+
+      setPersonalTurnos(personalMapeado);
+    };
+
+    fetchPersonalTurnos();
+
+    return () => {
+      activo = false;
+    };
+  }, [negocio?.idNegocio, negocio?.idDueño]);
 
   function filtrarTurnosHoy() {
     const hoy = new Date();
@@ -96,14 +152,16 @@ export default function PanelNegocio({ negocio, turnos }) {
   ];
 
   return (
-    <div className="min-h-screen bg-background px-5 mt-20 w-screen max-w-[1200px] mx-auto">
+    <div className="min-h-screen bg-background px-5 mt-20 w-screen max-w-300 mx-auto">
       {/* Header del panel */}
       <div className="bg-white rounded-xl mt-10  px-6 py-8  flex items-center  gap-8">
         {negocio?.image_url ? (
-          <img
+          <Image
             src={negocio?.image_url}
             alt={negocio?.nombre}
             className="w-24 h-24 rounded-xl border-6 border-white shadow-md object-cover"
+            width={96}
+            height={96}
           />
         ) : (
           <div className="w-24 h-24 rounded-xl bg-gray-300 flex items-center justify-center text-xl font-bold text-gray-600">
@@ -111,7 +169,7 @@ export default function PanelNegocio({ negocio, turnos }) {
           </div>
         )}
         <div>
-          <h1 className="text-2xl font-display font-[800] text-black">
+          <h1 className="text-2xl font-display font-extrabold text-black">
             {negocio?.nombre}
           </h1>
           <p className="text-sm text-gray-400 capitalize">
@@ -135,67 +193,6 @@ export default function PanelNegocio({ negocio, turnos }) {
           </div>
         </div>
       </div>
-      {/* <div className="flex gap-4 ">
-        <Button
-          onClick={(prev) =>
-            setMostrar(prev === "crear-servicio" ? null : "crear-servicio")
-          }
-          className="mt-4 flex ml-6 items-center gap-2 bg-black text-white px-4 py-2 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
-        >
-          Crear servicio
-          <span
-            className={`transition-transform duration-300 ${
-              mostrar === "crear-servicio" ? "rotate-180" : ""
-            }`}
-          >
-            ▼
-          </span>
-        </Button>
-
-        <Button
-          onClick={(prev) =>
-            setMostrar(
-              prev === "agregar-empleados" ? null : "agregar-empleados",
-            )
-          }
-          className="mt-4 flex  items-center gap-2 bg-black text-white px-4 py-2 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
-        >
-          Agregar empleados
-          <span
-            className={`transition-transform duration-300 ${
-              mostrar === "agregar-empleados" ? "rotate-180" : ""
-            }`}
-          >
-            ▼
-          </span>
-        </Button>
-      </div>
-      {mostrar === "crear-servicio" && (
-        <div
-          className={`overflow-hidden transition-all duration-500 ease-in-out ${
-            mostrar === "crear-servicio"
-              ? "max-h-[500px] opacity-100 mt-4"
-              : "max-h-0 opacity-0"
-          }`}
-        >
-          <div className="bg-white p-4 rounded shadow">
-            <CrearServicio idNegocio={negocio?.idNegocio} />
-          </div>
-        </div>
-      )}
-      {mostrar === "agregar-empleados" && (
-        <div
-          className={`overflow-hidden transition-all duration-500 ease-in-out ${
-            mostrar === "agregar-empleados"
-              ? "max-h-[500px] opacity-100 mt-4"
-              : "max-h-0 opacity-0"
-          }`}
-        >
-          <div className="bg-white p-4 rounded shadow">
-            <AgregarEmpleados idNegocio={negocio?.idNegocio} />
-          </div>
-        </div>
-      )} */}
 
       <section className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {TABS.map((tab) => (
@@ -217,7 +214,7 @@ export default function PanelNegocio({ negocio, turnos }) {
                 </span>
               </div>
 
-              <p className="text-2xl font-display font-[800] text-gray-900">
+              <p className="text-2xl font-display font-extrabold text-gray-900">
                 {tab.value}
               </p>
               {tab.extra && (
@@ -227,8 +224,48 @@ export default function PanelNegocio({ negocio, turnos }) {
           </div>
         ))}
       </section>
-      <main className="grid grid-cols-1 sm:grid-cols-[6fr_4fr] mt-5 gap-5">
-        <ListaTurnos turnos={turnos} />
+      <main className="flex flex-col md:flex-row mt-5 gap-5">
+        <ListaTurnos turnos={turnos} personalTurnos={personalTurnos} />
+        <section className="md:w-2/3 flex flex-col gap-5">
+          <div className="bg-white rounded-xl ">
+            <div className="flex pt-5 pb-4 px-6 justify-between border-b border-gray-200 items-center ">
+              <h2 className="text-lg font-display font-bold ">Equipo</h2>
+              <p className="text-brand text-sm cursor-pointer hover:text-[#0b503e]">
+                + Agregar
+              </p>
+            </div>
+            <div className="w-full">
+              {Object.values(personalTurnos).length === 0 ? (
+                <p className="text-sm text-gray-500">
+                  No hay personal registrado
+                </p>
+              ) : (
+                Object.values(personalTurnos).map((persona) => (
+                  <div
+                    key={persona.nombre}
+                    className="flex items-center gap-3 px-6  py-4 border-t border-gray-200 last:mb-0"
+                  >
+                    {persona.image_url ? (
+                      <Image
+                        src={persona.image_url}
+                        alt={persona.nombre}
+                        width={32}
+                        height={32}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-600">
+                        {persona.nombre.charAt(0)}
+                      </div>
+                    )}
+                    <p className="text-sm text-gray-700">{persona.nombre}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+          <div className="bg-white rounded-xl "></div>
+        </section>
       </main>
     </div>
   );
