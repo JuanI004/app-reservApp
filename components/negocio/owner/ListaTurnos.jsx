@@ -75,7 +75,7 @@ export default function ListaTurnos({ turnos = [], personalTurnos = {} }) {
       ? turnos
       : turnos.filter((t) => t.estado + "s" === filtro.toLowerCase());
   return (
-    <div className="bg-white w-full rounded-xl  pt-5">
+    <div className="bg-white w-full rounded-xl pt-5 self-start">
       <h2 className="text-lg font-display px-6 font-bold mb-4">
         Turnos — {formatearFecha(fechaHoy)}
       </h2>

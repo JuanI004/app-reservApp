@@ -8,16 +8,34 @@ import Image from "next/image";
 
 export default function PanelNegocio({ negocio, turnos = [] }) {
   const [personalTurnos, setPersonalTurnos] = useState({});
+  const [servicios, setServicios] = useState();
+  const [horarios, setHorarios] = useState();
 
   useEffect(() => {
     if (!negocio?.idNegocio) return;
 
     let activo = true;
 
+    const fetchServiciosyHorarios = async () => {
+      const { data: servicios, error } = await supabase
+        .from("Negocios")
+        .select("servicios, horarios")
+        .eq("idNegocio", negocio.idNegocio);
+
+      if (error) {
+        console.error("Error trayendo servicios:", error.message);
+      }
+      if (servicios && servicios.length > 0) {
+        setServicios(servicios[0].servicios);
+        setHorarios(servicios[0].horarios);
+        console.log("Servicios obtenidos:", servicios);
+      }
+    };
+
     const fetchPersonalTurnos = async () => {
       const { data: empleados, error: errorEmpleados } = await supabase
         .from("Empleados")
-        .select("idEmpleado, nombre, image_url")
+        .select("idEmpleado, nombre, image_url, rol")
         .eq("idNegocio", negocio.idNegocio);
 
       const { data: duenio, error: errorDuenio } = negocio?.idDueño
@@ -42,6 +60,7 @@ export default function PanelNegocio({ negocio, turnos = [] }) {
         acc[empleado.idEmpleado] = {
           nombre: empleado.nombre || "Desconocido",
           image_url: empleado.image_url,
+          rol: empleado.rol || "Desconocido",
         };
         return acc;
       }, {});
@@ -52,6 +71,7 @@ export default function PanelNegocio({ negocio, turnos = [] }) {
             `${duenio.nombre ?? ""} ${duenio.apellido ?? ""}`.trim() ||
             "Desconocido",
           image_url: duenio.image_url,
+          rol: "Dueño",
         };
       }
 
@@ -59,11 +79,25 @@ export default function PanelNegocio({ negocio, turnos = [] }) {
     };
 
     fetchPersonalTurnos();
+    fetchServiciosyHorarios();
 
     return () => {
       activo = false;
     };
   }, [negocio?.idNegocio, negocio?.idDueño]);
+
+  function getTurnosCantEmpleadoHoy(idEmpleado) {
+    const hoy = new Date();
+    const turnosHoy = turnos.filter((turno) => {
+      return (
+        turno.idEmpleado === idEmpleado &&
+        new Date(turno.fecha_inicio).getDate() === hoy.getDate() &&
+        new Date(turno.fecha_inicio).getMonth() === hoy.getMonth() &&
+        new Date(turno.fecha_inicio).getFullYear() === hoy.getFullYear()
+      );
+    });
+    return turnosHoy.length;
+  }
 
   function filtrarTurnosHoy() {
     const hoy = new Date();
@@ -152,7 +186,7 @@ export default function PanelNegocio({ negocio, turnos = [] }) {
   ];
 
   return (
-    <div className="min-h-screen bg-background px-5 mt-20 w-screen max-w-300 mx-auto">
+    <div className="min-h-screen bg-background px-5 my-20 w-screen max-w-300 mx-auto">
       {/* Header del panel */}
       <div className="bg-white rounded-xl mt-10  px-6 py-8  flex items-center  gap-8">
         {negocio?.image_url ? (
@@ -243,28 +277,119 @@ export default function PanelNegocio({ negocio, turnos = [] }) {
                 Object.values(personalTurnos).map((persona) => (
                   <div
                     key={persona.nombre}
-                    className="flex items-center gap-3 px-6  py-4 border-t border-gray-200 last:mb-0"
+                    className="flex items-center  px-6 justify-between  py-4 border-t border-gray-200 last:mb-0"
                   >
-                    {persona.image_url ? (
-                      <Image
-                        src={persona.image_url}
-                        alt={persona.nombre}
-                        width={32}
-                        height={32}
-                        className="w-8 h-8 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-600">
-                        {persona.nombre.charAt(0)}
+                    <div className="flex gap-3 ">
+                      {persona.image_url ? (
+                        <Image
+                          src={persona.image_url}
+                          alt={persona.nombre}
+                          width={100}
+                          height={100}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-600">
+                          {persona.nombre.charAt(0)}
+                        </div>
+                      )}
+                      <div className="flex flex-col">
+                        <p className="text-sm font-bold">{persona.nombre}</p>
+                        <p className="text-xs text-gray-500">{persona.rol}</p>
                       </div>
-                    )}
-                    <p className="text-sm text-gray-700">{persona.nombre}</p>
+                    </div>
+                    <div className="flex flex-col ">
+                      <h2 className="font-display text-right font-[700] leading-4">
+                        {getTurnosCantEmpleadoHoy(persona.id)}
+                      </h2>
+                      <p className="text-xs text-gray-500">hoy</p>
+                    </div>
                   </div>
                 ))
               )}
             </div>
           </div>
-          <div className="bg-white rounded-xl "></div>
+          <div className="bg-white rounded-xl ">
+            <div className="flex pt-5 pb-4 px-6 justify-between border-b border-gray-200 items-center ">
+              <h2 className="text-lg font-display font-bold ">Servicios</h2>
+              <p className="text-brand text-sm cursor-pointer hover:text-[#0b503e]">
+                + Crear
+              </p>
+            </div>
+            <div className="w-full">
+              {servicios?.length === 0 ? (
+                <p className="py-4 px-6 text-sm text-gray-500">
+                  No hay servicios registrados
+                </p>
+              ) : (
+                servicios?.map((servicio) => (
+                  <div
+                    key={servicio?.idServicio}
+                    className="flex items-center  px-6 justify-between  py-4 border-t border-gray-200 last:mb-0"
+                  >
+                    <div className="flex gap-3 ">
+                      <div className="flex flex-col">
+                        <p className="text-sm font-bold">{servicio?.nombre}</p>
+                        <p className="text-xs text-gray-500">
+                          {servicio?.duracion} min
+                        </p>
+                      </div>
+                    </div>
+
+                    <h2 className="text-brand text-right text-sm font-bold leading-4">
+                      ${servicio?.precio}
+                    </h2>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+          <div className="bg-white rounded-xl ">
+            <div className="flex pt-5 pb-4 px-6 justify-between border-b border-gray-200 items-center ">
+              <h2 className="text-lg font-display font-bold ">Horarios</h2>
+              <p className="text-brand text-sm cursor-pointer hover:text-[#0b503e]">
+                Editar
+              </p>
+            </div>
+            <div className="w-full">
+              {horarios?.length === 0 ? (
+                <p className="py-4 px-6 text-sm text-gray-500">
+                  No hay horarios registrados
+                </p>
+              ) : (
+                horarios?.map((horario, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center  px-6 justify-between  py-4 border-t border-gray-200 last:mb-0"
+                  >
+                    <span
+                      className={`w-2 h-2 rounded-full ${horario?.activa ? "bg-brand-light" : "bg-gray-300"}`}
+                    />
+                    <p className="text-sm font-bold">
+                      {
+                        [
+                          "Lunes",
+                          "Martes",
+                          "Miércoles",
+                          "Jueves",
+                          "Viernes",
+                          "Sábado",
+                          "Domingo",
+                        ][horario?.dia - 1]
+                      }
+                    </p>
+                    {horario?.activa ? (
+                      <p className="text-sm text-gray-500">
+                        {horario?.desde} - {horario?.hasta}
+                      </p>
+                    ) : (
+                      <p className="text-sm italic text-gray-500">Cerrado</p>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </section>
       </main>
     </div>
