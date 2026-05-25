@@ -6,7 +6,13 @@ import { supabase } from "../../../lib/supabase";
 import ListaTurnos from "./ListaTurnos";
 import Image from "next/image";
 
-export default function PanelNegocio({ negocio, turnos = [] }) {
+export default function PanelNegocio({
+  negocio,
+  turnos = [],
+  onAgregarEquipo,
+  onAgregarServicio,
+  onEditarHorarios,
+}) {
   const [personalTurnos, setPersonalTurnos] = useState({});
   const [servicios, setServicios] = useState();
   const [horarios, setHorarios] = useState();
@@ -264,7 +270,10 @@ export default function PanelNegocio({ negocio, turnos = [] }) {
           <div className="bg-white rounded-xl ">
             <div className="flex pt-5 pb-4 px-6 justify-between border-b border-gray-200 items-center ">
               <h2 className="text-lg font-display font-bold ">Equipo</h2>
-              <p className="text-brand text-sm cursor-pointer hover:text-[#0b503e]">
+              <p
+                className="text-brand text-sm cursor-pointer hover:text-[#0b503e]"
+                onClick={onAgregarEquipo}
+              >
                 + Agregar
               </p>
             </div>
@@ -312,7 +321,10 @@ export default function PanelNegocio({ negocio, turnos = [] }) {
           <div className="bg-white rounded-xl ">
             <div className="flex pt-5 pb-4 px-6 justify-between border-b border-gray-200 items-center ">
               <h2 className="text-lg font-display font-bold ">Servicios</h2>
-              <p className="text-brand text-sm cursor-pointer hover:text-[#0b503e]">
+              <p
+                className="text-brand text-sm cursor-pointer hover:text-[#0b503e]"
+                onClick={onAgregarServicio}
+              >
                 + Crear
               </p>
             </div>
@@ -347,7 +359,10 @@ export default function PanelNegocio({ negocio, turnos = [] }) {
           <div className="bg-white rounded-xl ">
             <div className="flex pt-5 pb-4 px-6 justify-between border-b border-gray-200 items-center ">
               <h2 className="text-lg font-display font-bold ">Horarios</h2>
-              <p className="text-brand text-sm cursor-pointer hover:text-[#0b503e]">
+              <p
+                className="text-brand text-sm cursor-pointer hover:text-[#0b503e]"
+                onClick={onEditarHorarios}
+              >
                 Editar
               </p>
             </div>

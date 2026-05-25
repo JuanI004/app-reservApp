@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import Image from "next/image";
+import Input from "../ui/Input";
+import Label from "../ui/Label";
 
 export default function AgregarEmpleado({ idNegocio }) {
   const searchParams = useSearchParams();
@@ -30,7 +32,7 @@ export default function AgregarEmpleado({ idNegocio }) {
     };
 
     fetchServicios();
-  }, []);
+  }, [idNegocio]);
 
   const buscarUsuario = async () => {
     if (!email.trim()) return;
@@ -121,12 +123,17 @@ export default function AgregarEmpleado({ idNegocio }) {
   };
 
   return (
-    <div className="max-w-md mx-auto p-4 space-y-4">
-      <h2 className="text-xl font-bold">Agregar empleado</h2>
-      <div>
-        <p className="text-sm font-semibold mb-1">Email del empleado</p>
-        <div className="flex gap-2">
-          <input
+    <div className="relative max-w-2xl mx-auto rounded-2xl  space-y-6">
+      <p className="text-sm pt-6 px-6 text-gray-500">
+        Buscá un usuario por email y asignale un rol y servicios dentro del
+        negocio.
+      </p>
+
+      <div className="space-y-2 px-6">
+        <Label htmlFor="emailEmpleado">Email del empleado</Label>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Input
+            id="emailEmpleado"
             type="email"
             placeholder="empleado@email.com"
             value={email}
@@ -136,20 +143,20 @@ export default function AgregarEmpleado({ idNegocio }) {
               setMensaje(null);
             }}
             onKeyDown={(e) => e.key === "Enter" && buscarUsuario()}
-            className="flex-1 border p-2 text-sm"
+            className="flex-1"
           />
           <button
             onClick={buscarUsuario}
             disabled={buscando || !email.trim()}
-            className="px-4 py-2 text-sm border bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+            className="px-5 py-2.5 rounded-xl text-sm font-medium bg-background border border-gray-300  hover:bg-brand/20 hover:border-brand hover:text-brand disabled:cursor-not-allowed transition"
           >
             {buscando ? "Buscando..." : "Buscar"}
           </button>
         </div>
       </div>
       {usuarioEncontrado && (
-        <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
-          <div className="w-9 h-9 rounded-full bg-brand flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+        <div className="flex items-center gap-3 px-6 py-4 border border-gray-200 rounded-xl bg-background/60">
+          <div className="w-9 h-9 rounded-full bg-brand flex items-center justify-center text-white text-sm font-bold shrink-0">
             {usuarioEncontrado.image_url ? (
               <Image
                 width={36}
@@ -174,32 +181,46 @@ export default function AgregarEmpleado({ idNegocio }) {
           </div>
         </div>
       )}
-      <input
-        type="text"
-        placeholder="Rol (ej: Colorista, Barbero)"
-        value={rol}
-        onChange={(e) => setRol(e.target.value)}
-        className="w-full border p-2 text-sm"
-      />
-      <div>
-        <h3 className="font-semibold">Asignar servicios (opcional)</h3>
+      <div className="space-y-2 px-6">
+        <Label htmlFor="rolEmpleado">Rol</Label>
+        <Input
+          id="rolEmpleado"
+          type="text"
+          placeholder="Colorista, Barbero, Recepcionista..."
+          value={rol}
+          onChange={(e) => setRol(e.target.value)}
+        />
+      </div>
+      <div className="space-y-3 rounded-xl border border-gray-200 bg-background/60 mx-6 p-4">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900">
+            Asignar servicios
+          </h3>
+          <p className="text-xs text-gray-500">Opcional</p>
+        </div>
 
-        {servicios.map((s) => (
-          <label key={s.nombre} className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={serviciosSeleccionados.some(
-                (selected) => selected.nombre === s.nombre,
-              )}
-              onChange={() => toggleServicio(s)}
-            />
-            {s.nombre}
-          </label>
-        ))}
+        <div className="grid gap-2">
+          {servicios.map((s) => (
+            <label
+              key={s.nombre}
+              className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
+            >
+              <input
+                type="checkbox"
+                checked={serviciosSeleccionados.some(
+                  (selected) => selected.nombre === s.nombre,
+                )}
+                onChange={() => toggleServicio(s)}
+                className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
+              />
+              <span>{s.nombre}</span>
+            </label>
+          ))}
+        </div>
       </div>
       {mensaje && (
         <p
-          className={`text-sm p-2 rounded-lg border ${
+          className={`text-sm px-8 py-2 rounded-lg border ${
             mensaje.tipo === "success"
               ? "bg-green-100 text-green-700 border-green-700"
               : "bg-[#ef44443f] text-red-600 border-red-600"
@@ -208,13 +229,15 @@ export default function AgregarEmpleado({ idNegocio }) {
           {mensaje.texto}
         </p>
       )}
-      <button
-        onClick={handleSubmit}
-        disabled={loading || !usuarioEncontrado}
-        className="bg-black text-white px-4 py-2 disabled:opacity-50"
-      >
-        {loading ? "Agregando..." : "Agregar empleado"}
-      </button>
+      <div className="fixed bottom-0 right-0  w-sm bg-white flex border-t border-gray-300 py-4 px-6 justify-end">
+        <button
+          onClick={handleSubmit}
+          disabled={loading || !usuarioEncontrado}
+          className="px-6 py-2.5 rounded-full bg-brand text-white font-medium hover:bg-brand-light disabled:opacity-50 disabled:cursor-not-allowed transition"
+        >
+          {loading ? "Agregando..." : "Agregar empleado"}
+        </button>
+      </div>
     </div>
   );
 }
