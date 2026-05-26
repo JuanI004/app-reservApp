@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
 import AgregarEmpleado from "../../agregarEmpleados/AgregarEmpleado.jsx";
 import CrearServicio from "../../agregarServicios/CrearServicio";
+import EditarHorarios from "../../editarHorarios/EditarHorarios.jsx";
 import PanelNegocio from "./PanelNegocio.jsx";
 
 export default function NegocioOwnerPage({ negocio, session }) {
@@ -81,10 +82,29 @@ export default function NegocioOwnerPage({ negocio, session }) {
             </div>
             <div>
               {modalIsOpen.modo === "empleado" && (
-                <AgregarEmpleado idNegocio={negocio.idNegocio} />
+                <AgregarEmpleado
+                  idNegocio={negocio.idNegocio}
+                  handleClose={() =>
+                    setModalIsOpen({ activo: false, modo: null })
+                  }
+                />
               )}
               {modalIsOpen.modo === "servicio" && (
-                <CrearServicio idNegocio={negocio.idNegocio} />
+                <CrearServicio
+                  idNegocio={negocio.idNegocio}
+                  handleClose={() =>
+                    setModalIsOpen({ activo: false, modo: null })
+                  }
+                />
+              )}
+              {modalIsOpen.modo === "horarios" && (
+                <EditarHorarios
+                  horarios={negocio.horarios}
+                  handleClose={() =>
+                    setModalIsOpen({ activo: false, modo: null })
+                  }
+                  idNegocio={negocio.idNegocio}
+                />
               )}
             </div>
           </div>

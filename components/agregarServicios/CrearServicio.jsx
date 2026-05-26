@@ -6,7 +6,7 @@ import { supabase } from "../../lib/supabase";
 import Input from "../ui/Input";
 import Label from "../ui/Label";
 
-export default function CrearServicio({ idNegocio }) {
+export default function CrearServicio({ idNegocio, handleClose }) {
   const [nombre, setNombre] = useState("");
   const [duracion, setDuracion] = useState("");
   const [empleados, setEmpleados] = useState([]);

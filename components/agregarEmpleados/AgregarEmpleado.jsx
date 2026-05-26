@@ -7,7 +7,7 @@ import Image from "next/image";
 import Input from "../ui/Input";
 import Label from "../ui/Label";
 
-export default function AgregarEmpleado({ idNegocio }) {
+export default function AgregarEmpleado({ idNegocio, handleClose }) {
   const searchParams = useSearchParams();
 
   const [email, setEmail] = useState("");
@@ -105,6 +105,7 @@ export default function AgregarEmpleado({ idNegocio }) {
       setRol("");
       setServiciosSeleccionados([]);
       setUsuarioEncontrado(null);
+      handleClose();
     }
 
     setLoading(false);
@@ -123,7 +124,7 @@ export default function AgregarEmpleado({ idNegocio }) {
   };
 
   return (
-    <div className="relative max-w-2xl mx-auto rounded-2xl  space-y-6">
+    <div className="relative max-w-2xl mx-auto  space-y-6">
       <p className="text-sm pt-6 px-6 text-gray-500">
         Buscá un usuario por email y asignale un rol y servicios dentro del
         negocio.
