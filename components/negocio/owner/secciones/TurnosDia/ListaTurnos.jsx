@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "../../../../../lib/supabase";
 import Image from "next/image";
 
-export default function ListaTurnos({ turnos = [], personalTurnos = {} }) {
+export default function ListaTurnos({ turnosDeHoy = [], personalTurnos = {} }) {
   const [filtro, setFiltro] = useState("Todos");
   const [nombresUsuarios, setNombresUsuarios] = useState({});
 
   useEffect(() => {
     const idsUsuarios = [
-      ...new Set(turnos.map((turno) => turno.idUsuario).filter(Boolean)),
+      ...new Set(turnosDeHoy.map((turno) => turno.idUsuario).filter(Boolean)),
     ];
 
     if (idsUsuarios.length === 0) return;
@@ -34,30 +34,7 @@ export default function ListaTurnos({ turnos = [], personalTurnos = {} }) {
       setNombresUsuarios((prev) => ({ ...prev, ...nombresMapeados }));
     };
     fetchNombresUsuarios();
-  }, [turnos]);
-
-  const ESTADOS = [
-    { label: "Todos", cant: turnos.length },
-    {
-      label: "Pendientes",
-      value: "pendiente",
-      cant: turnos?.filter((t) => t.estado === "pendiente").length,
-    },
-    {
-      label: "Cancelados",
-      value: "cancelado",
-      cant: turnos?.filter((t) => t.estado === "cancelado").length,
-    },
-    {
-      label: "Confirmados",
-      value: "confirmado",
-      cant: turnos?.filter((t) => t.estado === "confirmado").length,
-    },
-  ];
-
-  const obtenerNombreUsuario = (turno) => {
-    return nombresUsuarios[turno.idUsuario] || "Desconocido";
-  };
+  }, [turnosDeHoy]);
   const fechaHoy = new Date();
   function formatearFecha(fecha) {
     const date = new Date(fecha);
@@ -70,10 +47,34 @@ export default function ListaTurnos({ turnos = [], personalTurnos = {} }) {
     return `${partes[0]} ${partes[1]} de ${partes[3]}`;
   }
 
+  const ESTADOS = [
+    { label: "Todos", cant: turnosDeHoy.length },
+    {
+      label: "Pendientes",
+      value: "pendiente",
+      cant: turnosDeHoy?.filter((t) => t.estado === "pendiente").length,
+    },
+    {
+      label: "Cancelados",
+      value: "cancelado",
+      cant: turnosDeHoy?.filter((t) => t.estado === "cancelado").length,
+    },
+    {
+      label: "Confirmados",
+      value: "confirmado",
+      cant: turnosDeHoy?.filter((t) => t.estado === "confirmado").length,
+    },
+  ];
+
+  const obtenerNombreUsuario = (turno) => {
+    return nombresUsuarios[turno.idUsuario] || "Desconocido";
+  };
+
   const turnosFiltrados =
     filtro === "Todos"
-      ? turnos
-      : turnos.filter((t) => t.estado + "s" === filtro.toLowerCase());
+      ? turnosDeHoy
+      : turnosDeHoy.filter((t) => t.estado + "s" === filtro.toLowerCase());
+
   return (
     <div className="bg-white w-full rounded-xl pt-5 self-start">
       <h2 className="text-lg font-display px-6 font-bold mb-4">
@@ -193,7 +194,7 @@ export default function ListaTurnos({ turnos = [], personalTurnos = {} }) {
           ))
         ) : (
           <div className="p-10 text-center text-gray-500">
-            No hay turnos para mostrar.
+            No hay turnos hoy para mostrar.
           </div>
         )}
       </div>
