@@ -180,7 +180,7 @@ export default function NegocioOwnerPage({ negocio, session }) {
           />
         )}
         {seccionSeleccionada === "calendario" && (
-          <CalendarioSem turnos={turnos} />
+          <CalendarioSem turnos={turnos} negocio={negocio} />
         )}
       </div>
     </>

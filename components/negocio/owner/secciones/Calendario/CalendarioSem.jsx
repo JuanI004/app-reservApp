@@ -1,4 +1,6 @@
-export default function CalendarioSem({ turnos = [] }) {
+import Calendario from "./Calendario";
+
+export default function CalendarioSem({ turnos = [], negocio }) {
   const turnosSemana = turnos.filter((turno) => {
     const fechaTurno = new Date(turno.fecha);
     const hoy = new Date();
@@ -130,6 +132,7 @@ export default function CalendarioSem({ turnos = [] }) {
           </div>
         ))}
       </section>
+      <Calendario turnos={turnosSemana} negocio={negocio} />
     </>
   );
 }
