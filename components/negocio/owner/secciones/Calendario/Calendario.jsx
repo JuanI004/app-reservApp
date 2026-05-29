@@ -1,4 +1,7 @@
+import { useState } from "react";
+
 export default function Calendario({ turnos, negocio }) {
+  const [mostrarDetalle, setMostrarDetalle] = useState(null);
   const fechaActual = new Date();
   const mesActual = fechaActual.getMonth();
   function getDiasSemana() {
@@ -62,6 +65,7 @@ export default function Calendario({ turnos, negocio }) {
   function formatearHora(hora) {
     return `${String(hora).padStart(2, "0")}:00`;
   }
+  console.log(mostrarDetalle);
 
   return (
     <main className="rounded-xl mt-4 overflow-hidden">
@@ -112,13 +116,14 @@ export default function Calendario({ turnos, negocio }) {
       <section className="grid grid-cols-[4.25rem_repeat(7,minmax(0,1fr))] bg-white">
         {horas.map((hora) => (
           <div key={hora} className="contents ">
-            <div className=" flex  justify-center items-center border-x border-b border-gray-200 bg-[#f7f6f3] p-2 text-xs font-medium text-gray-500">
+            <div className="flex flex-wrap  justify-center items-center border-x border-b border-gray-200 bg-[#f7f6f3] p-2 text-xs font-medium text-gray-500">
               {formatearHora(hora)}
             </div>
+
             {dias.map((dia) => (
               <div
                 key={`${dia.toISOString()}-${hora}`}
-                className="min-h-14 border-r border-b border-gray-200 p-2"
+                className={`group min-h-14 cursor-pointer hover:bg-brand/10 ${dia.getDate() === fechaActual.getDate() && dia.getMonth() === fechaActual.getMonth() ? "bg-brand/5" : ""} flex justify-center items-center border-r border-b border-gray-200 p-2`}
               >
                 {turnos
                   .filter((turno) => {
@@ -137,7 +142,6 @@ export default function Calendario({ turnos, negocio }) {
 
                     let fechaTurno;
                     if (fechaStr && horaStr) {
-                      // combine date and time into an ISO string
                       fechaTurno = new Date(`${fechaStr}T${horaStr}`);
                     } else if (fechaStr) {
                       fechaTurno = new Date(fechaStr);
@@ -163,10 +167,28 @@ export default function Calendario({ turnos, negocio }) {
                   })
                   .map((turno) => (
                     <div
-                      key={turno.idTurno ?? turno.id ?? turno.id_turno}
-                      className="bg-brand/10 text-brand rounded-lg p-1 text-xs font-medium mb-1"
+                      onMouseEnter={() => setMostrarDetalle(turno.idTurno)}
+                      onMouseLeave={() => setMostrarDetalle(null)}
+                      key={turno.idTurno}
+                      className={`relative bg-white border-5 ${turno.estado === "confirmado" ? "border-brand-light" : turno.estado === "pendiente" ? "border-[#D97706]" : "border-red-800"} cursor-pointer h-5 w-5 rounded-full p-1 text-xs font-medium group-hover:scale-110 transition-transform `}
                     >
-                      {turno.idUsuario}
+                      {mostrarDetalle != null && (
+                        <div className="absolute z-20 -top-30 w-[150px] bg-white border border-gray-300 flex flex-col gap-2 items-start rounded-lg shadow-lg p-4">
+                          <h4
+                            className={`rounded-xl px-3 border ${turno.estado === "confirmado" ? "bg-green-100 text-brand border-brand" : turno.estado === "pendiente" ? "bg-yellow-100 text-yellow-800 border-yellow-800" : "bg-red-100 text-red-800 border-red-800"} capitalize`}
+                          >
+                            {turno.estado}
+                          </h4>
+                          <p>Cliente: {turno.nombreCliente}</p>
+                          <p>Empleado: {turno.nombreEmpleado}</p>
+                          <p>
+                            {turno.horaInicio.split(":")[0]}:
+                            {turno.horaInicio.split(":")[1]} →{" "}
+                            {turno.horaFin.split(":")[0]}:
+                            {turno.horaFin.split(":")[1]}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   ))}
               </div>
