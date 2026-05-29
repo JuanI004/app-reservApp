@@ -175,7 +175,7 @@ export default function Calendario({ turnos, negocio }) {
                       {mostrarDetalle != null && (
                         <div className="absolute z-20 -top-30 w-[150px] bg-white border border-gray-300 flex flex-col gap-2 items-start rounded-lg shadow-lg p-4">
                           <h4
-                            className={`rounded-xl px-3 border ${turno.estado === "confirmado" ? "bg-green-100 text-brand border-brand" : turno.estado === "pendiente" ? "bg-yellow-100 text-yellow-800 border-yellow-800" : "bg-red-100 text-red-800 border-red-800"} capitalize`}
+                            className={`rounded-xl px-3  ${turno.estado === "confirmado" ? "bg-green-100 text-brand " : turno.estado === "pendiente" ? "bg-yellow-100 text-yellow-800 " : "bg-red-100 text-red-800 "} capitalize`}
                           >
                             {turno.estado}
                           </h4>

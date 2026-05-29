@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../../../../lib/supabase";
 import Image from "next/image";
 
-export default function ListaTurnos({ turnosDeHoy = [], personalTurnos = {} }) {
+export default function ListaTurnos({
+  turnosDeHoy = [],
+  personalTurnos = {},
+  handleConfirmar,
+  handleCancelar,
+}) {
   const [filtro, setFiltro] = useState("Todos");
   const [nombresUsuarios, setNombresUsuarios] = useState({});
 
@@ -164,7 +169,10 @@ export default function ListaTurnos({ turnosDeHoy = [], personalTurnos = {} }) {
                   {turno.estado}
                 </p>
                 {turno.estado === "pendiente" && (
-                  <button className="p-2 cursor-pointer border border-gray-300 rounded-full hover:bg-brand/10 hover:border-brand hover:text-brand transition-colors">
+                  <button
+                    onClick={() => handleConfirmar(turno.idTurno)}
+                    className="p-2 cursor-pointer border border-gray-300 rounded-full hover:bg-brand/10 hover:border-brand hover:text-brand transition-colors"
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="15"
@@ -177,7 +185,10 @@ export default function ListaTurnos({ turnosDeHoy = [], personalTurnos = {} }) {
                   </button>
                 )}
                 {turno.estado !== "cancelado" && (
-                  <button className="p-2 cursor-pointer border border-gray-300 rounded-full hover:bg-red-100 hover:border-red-400 hover:text-red-600 transition-colors">
+                  <button
+                    onClick={() => handleCancelar(turno.idTurno)}
+                    className="p-2 cursor-pointer border border-gray-300 rounded-full hover:bg-red-100 hover:border-red-400 hover:text-red-600 transition-colors"
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="15"

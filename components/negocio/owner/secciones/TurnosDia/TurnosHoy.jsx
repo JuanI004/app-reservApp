@@ -16,6 +16,7 @@ export default function PanelNegocio({
   const [personalTurnos, setPersonalTurnos] = useState({});
   const [servicios, setServicios] = useState();
   const [horarios, setHorarios] = useState();
+  const [turnosState, setTurnosState] = useState(() => turnos ?? []);
 
   useEffect(() => {
     if (!negocio?.idNegocio) return;
@@ -92,6 +93,48 @@ export default function PanelNegocio({
     };
   }, [negocio?.idNegocio, negocio?.idDueño]);
 
+  useEffect(() => {
+    setTurnosState(turnos ?? []);
+  }, [turnos]);
+
+  async function handleConfirmarTurno(idTurno) {
+    const prev = [...turnosState];
+    setTurnosState((prevState) =>
+      prevState.map((t) =>
+        t.idTurno === idTurno ? { ...t, estado: "confirmado" } : t,
+      ),
+    );
+
+    const { error } = await supabase
+      .from("Turnos")
+      .update({ estado: "confirmado" })
+      .eq("idTurno", idTurno);
+
+    if (error) {
+      console.error("Error confirmando turno:", error.message);
+      setTurnosState(prev);
+    }
+  }
+
+  async function handleCancelarTurno(idTurno) {
+    const prev = [...turnosState];
+    setTurnosState((prevState) =>
+      prevState.map((t) =>
+        t.idTurno === idTurno ? { ...t, estado: "cancelado" } : t,
+      ),
+    );
+
+    const { error } = await supabase
+      .from("Turnos")
+      .update({ estado: "cancelado" })
+      .eq("idTurno", idTurno);
+
+    if (error) {
+      console.error("Error cancelando turno:", error.message);
+      setTurnosState(prev);
+    }
+  }
+
   function getTurnosCantEmpleadoHoy(idEmpleado) {
     const hoy = new Date();
     const turnosHoy = turnos.filter((turno) => {
@@ -129,7 +172,7 @@ export default function PanelNegocio({
     return `${partes[0]} ${partes[1]} de ${partes[3]}`;
   }
 
-  const turnosHoy = turnos.filter(
+  const turnosHoy = turnosState.filter(
     (t) => formatDateToYYYYMMDD(t.fecha) === fechaHoyStr,
   );
   const turnosPendientes = turnosHoy.filter((t) => t.estado === "pendiente");
@@ -241,7 +284,12 @@ export default function PanelNegocio({
         ))}
       </section>
       <main className="flex flex-col md:flex-row mt-5 gap-5">
-        <ListaTurnos turnosDeHoy={turnosHoy} personalTurnos={personalTurnos} />
+        <ListaTurnos
+          turnosDeHoy={turnosHoy}
+          personalTurnos={personalTurnos}
+          handleConfirmar={handleConfirmarTurno}
+          handleCancelar={handleCancelarTurno}
+        />
         <section className="md:w-2/3 flex flex-col gap-5">
           <div className="bg-white rounded-xl ">
             <div className="flex pt-5 pb-4 px-6 justify-between border-b border-gray-200 items-center ">
