@@ -38,6 +38,7 @@ export default function NegocioUserPage({ negocio, session }) {
   const [formData, setFormData] = useState({
     servicio: null,
     profesional: null,
+    nombreCliente: null,
     idEmpleado: null,
     dia: null,
     diaParseada: null,
@@ -83,6 +84,21 @@ export default function NegocioUserPage({ negocio, session }) {
   useEffect(() => {
     if (!formData.fechaDate || !negocio?.idNegocio) return;
 
+    const fetchNombreCliente = async () => {
+      const { data, error } = await supabase
+        .from("Clientes")
+        .select("nombre, apellido")
+        .eq("idCliente", session.user.id);
+      if (error) {
+        console.error("Error trayendo nombre cliente:", error.message);
+        return session.user.email;
+      } else {
+        const nombreCompleto = data?.[0]
+          ? `${data[0].nombre} ${data[0].apellido}`
+          : session.user.email;
+        setFormData((prev) => ({ ...prev, nombreCliente: nombreCompleto }));
+      }
+    };
     const fetchTurnos = async () => {
       setCargando(true);
 
@@ -106,7 +122,7 @@ export default function NegocioUserPage({ negocio, session }) {
         setTurnosOcupados(data.map((t) => t.horaInicio)); // ['10:00', '11:30', ...]
       }
     };
-
+    fetchNombreCliente();
     fetchTurnos();
   }, [formData.fechaDate, formData.idEmpleado, negocio?.idNegocio]);
 
@@ -129,9 +145,12 @@ export default function NegocioUserPage({ negocio, session }) {
     const { data, error } = await supabase.from("Turnos").insert({
       idNegocio: negocio.idNegocio,
       idEmpleado: formData.idEmpleado || null,
+      nombreEmpleado: formData.profesional || null,
+      nombreCliente: formData.nombreCliente || null,
       idUsuario: session.user.id,
       servicio: formData.servicio,
       fecha: formData.fechaDate,
+      duracion: servicioObj?.duracion || 30,
       horaInicio: formData.horario,
       horaFin: calcularFin(formData.horario, servicioObj?.duracion || 30),
       estado: "pendiente",
@@ -478,11 +497,11 @@ export default function NegocioUserPage({ negocio, session }) {
                   onClick={() =>
                     setFormData((prev) => ({
                       ...prev,
-                      idEmpleado: negocioInfo?.dueño?.id,
+                      idEmpleado: negocioInfo?.dueño?.idDueño,
                       profesional: negocioInfo?.dueño?.nombre,
                     }))
                   }
-                  className={`w-full flex flex-col  cursor-pointer justify-center items-center text-sm text-center px-4 py-2 ${formData.idEmpleado === negocioInfo?.dueño?.id ? " bg-brand/10 border-brand" : "bg-background border-gray-300"} border  rounded-xl hover:bg-brand/10 hover:border-brand transition-colors`}
+                  className={`w-full flex flex-col  cursor-pointer justify-center items-center text-sm text-center px-4 py-2 ${formData.idEmpleado === negocioInfo?.dueño?.idDueño ? " bg-brand/10 border-brand" : "bg-background border-gray-300"} border  rounded-xl hover:bg-brand/10 hover:border-brand transition-colors`}
                 >
                   {negocioInfo?.dueño?.image_url ? (
                     <Image
