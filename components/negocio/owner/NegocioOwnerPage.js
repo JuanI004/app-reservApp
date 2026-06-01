@@ -10,12 +10,14 @@ import CrearServicio from "../../agregarServicios/CrearServicio";
 import EditarHorarios from "../../editarHorarios/EditarHorarios.jsx";
 import TurnosHoy from "./secciones/TurnosDia/TurnosHoy.jsx";
 import CalendarioSem from "./secciones/Calendario/CalendarioSem.jsx";
+import Estadisticas from "./secciones/estadisticas/Estadisticas.jsx";
 
 export default function NegocioOwnerPage({ negocio, session }) {
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
   const [seccionSeleccionada, setSeccionSeleccionada] = useState("turnos");
+  const [personalTurnos, setPersonalTurnos] = useState({});
   const [modalIsOpen, setModalIsOpen] = useState({ activo: false, modo: null });
 
   const [error, setError] = useState(null);
@@ -56,9 +58,54 @@ export default function NegocioOwnerPage({ negocio, session }) {
     if (!negocio) {
       return;
     }
+    const fetchPersonalTurnos = async () => {
+      const { data: empleados, error: errorEmpleados } = await supabase
+        .from("Empleados")
+        .select("idEmpleado, nombre, image_url, rol")
+        .eq("idNegocio", negocio.idNegocio);
+
+      const { data: duenio, error: errorDuenio } = negocio?.idDueño
+        ? await supabase
+            .from("Duenos")
+            .select("idDueño, nombre, apellido, image_url")
+            .eq("idDueño", negocio.idDueño)
+            .single()
+        : { data: null, error: null };
+
+      if (errorEmpleados) {
+        console.error("Error trayendo empleados:", errorEmpleados.message);
+      }
+
+      if (errorDuenio) {
+        console.error("Error trayendo dueño:", errorDuenio.message);
+      }
+
+      const personalMapeado = (empleados ?? []).reduce((acc, empleado) => {
+        acc[empleado.idEmpleado] = {
+          nombre: empleado.nombre || "Desconocido",
+          image_url: empleado.image_url,
+          rol: empleado.rol || "Desconocido",
+        };
+        return acc;
+      }, {});
+
+      if (duenio) {
+        personalMapeado[duenio.idDueño] = {
+          nombre:
+            `${duenio.nombre ?? ""} ${duenio.apellido ?? ""}`.trim() ||
+            "Desconocido",
+          image_url: duenio.image_url,
+          rol: "Dueño",
+        };
+      }
+
+      setPersonalTurnos(personalMapeado);
+    };
+
+    fetchPersonalTurnos();
     fetchTurnos();
     setLoading(false);
-  }, [negocio]);
+  }, [negocio, negocio?.idDueño]);
 
   if (loading) return <div className="p-10 mt-20">Cargando...</div>;
   if (error) return <div className="p-10 text-red-500">{error}</div>;
@@ -177,10 +224,18 @@ export default function NegocioOwnerPage({ negocio, session }) {
             onAgregarEquipo={onAgregarEquipo}
             onAgregarServicio={onAgregarServicio}
             onEditarHorarios={onEditarHorarios}
+            personalTurnos={personalTurnos}
           />
         )}
         {seccionSeleccionada === "calendario" && (
           <CalendarioSem turnos={turnos} negocio={negocio} />
+        )}
+        {seccionSeleccionada === "estadisticas" && (
+          <Estadisticas
+            turnos={turnos}
+            negocio={negocio}
+            personalTurnos={personalTurnos}
+          />
         )}
       </div>
     </>

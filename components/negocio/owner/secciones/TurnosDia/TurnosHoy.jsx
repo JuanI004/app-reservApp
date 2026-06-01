@@ -12,16 +12,14 @@ export default function PanelNegocio({
   onAgregarEquipo,
   onAgregarServicio,
   onEditarHorarios,
+  personalTurnos = {},
 }) {
-  const [personalTurnos, setPersonalTurnos] = useState({});
   const [servicios, setServicios] = useState();
   const [horarios, setHorarios] = useState();
   const [turnosState, setTurnosState] = useState(() => turnos ?? []);
 
   useEffect(() => {
     if (!negocio?.idNegocio) return;
-
-    let activo = true;
 
     const fetchServiciosyHorarios = async () => {
       const { data: servicios, error } = await supabase
@@ -39,59 +37,8 @@ export default function PanelNegocio({
       }
     };
 
-    const fetchPersonalTurnos = async () => {
-      const { data: empleados, error: errorEmpleados } = await supabase
-        .from("Empleados")
-        .select("idEmpleado, nombre, image_url, rol")
-        .eq("idNegocio", negocio.idNegocio);
-
-      const { data: duenio, error: errorDuenio } = negocio?.idDueño
-        ? await supabase
-            .from("Duenos")
-            .select("idDueño, nombre, apellido, image_url")
-            .eq("idDueño", negocio.idDueño)
-            .single()
-        : { data: null, error: null };
-
-      if (!activo) return;
-
-      if (errorEmpleados) {
-        console.error("Error trayendo empleados:", errorEmpleados.message);
-      }
-
-      if (errorDuenio) {
-        console.error("Error trayendo dueño:", errorDuenio.message);
-      }
-
-      const personalMapeado = (empleados ?? []).reduce((acc, empleado) => {
-        acc[empleado.idEmpleado] = {
-          nombre: empleado.nombre || "Desconocido",
-          image_url: empleado.image_url,
-          rol: empleado.rol || "Desconocido",
-        };
-        return acc;
-      }, {});
-
-      if (duenio) {
-        personalMapeado[duenio.idDueño] = {
-          nombre:
-            `${duenio.nombre ?? ""} ${duenio.apellido ?? ""}`.trim() ||
-            "Desconocido",
-          image_url: duenio.image_url,
-          rol: "Dueño",
-        };
-      }
-
-      setPersonalTurnos(personalMapeado);
-    };
-
-    fetchPersonalTurnos();
     fetchServiciosyHorarios();
-
-    return () => {
-      activo = false;
-    };
-  }, [negocio?.idNegocio, negocio?.idDueño]);
+  }, [negocio?.idNegocio]);
 
   useEffect(() => {
     setTurnosState(turnos ?? []);

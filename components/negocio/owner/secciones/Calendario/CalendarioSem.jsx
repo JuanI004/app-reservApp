@@ -1,8 +1,17 @@
 import Calendario from "./Calendario";
 
 export default function CalendarioSem({ turnos = [], negocio }) {
+  const parseLocalDate = (dateStr) => {
+    if (!dateStr) return new Date(dateStr);
+    const isoDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
+    if (isoDateOnly) {
+      const [y, m, d] = dateStr.split("-").map(Number);
+      return new Date(y, m - 1, d);
+    }
+    return new Date(dateStr);
+  };
   const turnosSemana = turnos.filter((turno) => {
-    const fechaTurno = new Date(turno.fecha);
+    const fechaTurno = parseLocalDate(turno.fecha);
     const hoy = new Date();
     const inicioSemana = new Date(hoy);
     inicioSemana.setDate(hoy.getDate() - hoy.getDay());
@@ -10,17 +19,22 @@ export default function CalendarioSem({ turnos = [], negocio }) {
     finSemana.setDate(inicioSemana.getDate() + 6);
     return fechaTurno >= inicioSemana && fechaTurno <= finSemana;
   });
-  const diaMasOcupado = turnosSemana.reduce((diaMasOcupado, turno) => {
-    const fechaTurno = new Date(turno.fecha);
-    const diaSemana = fechaTurno.getDay();
-    if (!diaMasOcupado || diaSemana.cantTurnos > diaMasOcupado.cantTurnos) {
-      return {
-        dia: diaSemana,
-        cantTurnos: (diaMasOcupado?.cantTurnos || 0) + 1,
-      };
-    }
-    return diaMasOcupado;
-  }, null);
+  const counts = turnosSemana.reduce((acc, turno) => {
+    const fechaTurno = parseLocalDate(turno.fecha);
+    const dia = fechaTurno.getDay();
+    acc[dia] = (acc[dia] || 0) + 1;
+    return acc;
+  }, {});
+  const diaMasOcupado = Object.keys(counts).length
+    ? Object.entries(counts).reduce(
+        (best, [dia, cant]) => {
+          const d = Number(dia);
+          const c = cant;
+          return c > best.cantTurnos ? { dia: d, cantTurnos: c } : best;
+        },
+        { dia: null, cantTurnos: 0 },
+      )
+    : null;
   const turnosPendientes = turnosSemana.filter((t) => t.estado === "pendiente");
   const turnosConfirmados = turnosSemana.filter(
     (t) => t.estado === "confirmado",

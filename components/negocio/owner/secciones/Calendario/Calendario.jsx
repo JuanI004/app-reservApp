@@ -123,7 +123,7 @@ export default function Calendario({ turnos, negocio }) {
             {dias.map((dia) => (
               <div
                 key={`${dia.toISOString()}-${hora}`}
-                className={`group min-h-14 cursor-pointer hover:bg-brand/10 ${dia.getDate() === fechaActual.getDate() && dia.getMonth() === fechaActual.getMonth() ? "bg-brand/5" : ""} flex justify-center items-center border-r border-b border-gray-200 p-2`}
+                className={`group min-h-14 cursor-pointer hover:bg-brand/10 ${dia.getDate() === fechaActual.getDate() && dia.getMonth() === fechaActual.getMonth() ? "bg-brand/5" : ""} flex justify-center items-center border-r border-b border-gray-200 gap-2 p-2`}
               >
                 {turnos
                   .filter((turno) => {
@@ -170,25 +170,26 @@ export default function Calendario({ turnos, negocio }) {
                       onMouseEnter={() => setMostrarDetalle(turno.idTurno)}
                       onMouseLeave={() => setMostrarDetalle(null)}
                       key={turno.idTurno}
-                      className={`relative bg-white border-5 ${turno.estado === "confirmado" ? "border-brand-light" : turno.estado === "pendiente" ? "border-[#D97706]" : "border-red-800"} cursor-pointer h-5 w-5 rounded-full p-1 text-xs font-medium group-hover:scale-110 transition-transform `}
+                      className={`relative  bg-white border-5 ${turno.estado === "confirmado" ? "border-brand-light" : turno.estado === "pendiente" ? "border-[#D97706]" : turno.estado === "completado" ? "border-blue-800" : "border-red-800"} cursor-pointer h-5 w-5 rounded-full p-1 text-xs font-medium group-hover:scale-110 transition-transform `}
                     >
-                      {mostrarDetalle != null && (
-                        <div className="absolute z-20 -top-30 w-[150px] bg-white border border-gray-300 flex flex-col gap-2 items-start rounded-lg shadow-lg p-4">
-                          <h4
-                            className={`rounded-xl px-3  ${turno.estado === "confirmado" ? "bg-green-100 text-brand " : turno.estado === "pendiente" ? "bg-yellow-100 text-yellow-800 " : "bg-red-100 text-red-800 "} capitalize`}
-                          >
-                            {turno.estado}
-                          </h4>
-                          <p>Cliente: {turno.nombreCliente}</p>
-                          <p>Empleado: {turno.nombreEmpleado}</p>
-                          <p>
-                            {turno.horaInicio.split(":")[0]}:
-                            {turno.horaInicio.split(":")[1]} →{" "}
-                            {turno.horaFin.split(":")[0]}:
-                            {turno.horaFin.split(":")[1]}
-                          </p>
-                        </div>
-                      )}
+                      {mostrarDetalle != null &&
+                        mostrarDetalle === turno.idTurno && (
+                          <div className="absolute  -top-32 w-[150px] bg-white border border-gray-300 flex flex-col gap-2 items-start rounded-lg shadow-lg p-4">
+                            <h4
+                              className={`rounded-xl px-3  ${turno.estado === "confirmado" ? "bg-green-100 text-brand " : turno.estado === "pendiente" ? "bg-yellow-100 text-yellow-800 " : turno.estado === "completado" ? "bg-blue-100 text-blue-800" : "bg-red-100 text-red-800 "} capitalize`}
+                            >
+                              {turno.estado}
+                            </h4>
+                            <p>Cliente: {turno.nombreCliente}</p>
+                            <p>Empleado: {turno.nombreEmpleado}</p>
+                            <p>
+                              {turno.horaInicio.split(":")[0]}:
+                              {turno.horaInicio.split(":")[1]} →{" "}
+                              {turno.horaFin.split(":")[0]}:
+                              {turno.horaFin.split(":")[1]}
+                            </p>
+                          </div>
+                        )}
                     </div>
                   ))}
               </div>
