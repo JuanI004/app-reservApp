@@ -3,6 +3,10 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { supabase } from "../../../../lib/supabase";
 import { useParams, useRouter } from "next/navigation";
+import Input from "../../../../components/ui/Input";
+import Label from "../../../../components/ui/Label";
+import CategoriasPicker from "../../../../components/ui/CategoriasPicker";
+import ServiciosEditor from "../../../../components/ui/ServiciosEditor";
 
 const reseñas = [
   {
@@ -36,6 +40,8 @@ export default function EditarNegocioPage() {
   const router = useRouter();
   const [negocioInfo, setNegocioInfo] = useState(null);
   const [cargando, setCargando] = useState(false);
+  const [hover, SetHover] = useState(null);
+  const [camposEditados, setCamposEditados] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -160,35 +166,82 @@ export default function EditarNegocioPage() {
         : "Sin teléfono registrado",
     },
   ];
-  const infoDelDia = [
-    {
-      title: "Estado",
-      value: "Abierto ahora",
-      color: "#1d9e75",
-    },
-    {
-      title: "Turnos hoy",
-      value: "8 disponibles",
-    },
-    {
-      title: "Espera aprox.",
-      value: "~10 min",
-    },
-  ];
+
   console.log(negocioInfo);
 
   return (
     <>
-      <span className="w-screen h-70 bg-black"></span>
+      <div className="fixed  bottom-0 w-screen py-3 border-t border-gray-200 px-4 bg-white z-20 ">
+        <div className="max-w-[1160px] flex items-center justify-between w-full mx-auto">
+          <p className="text-gray-500 text-sm">
+            Los cambios no guardados se perderán
+          </p>
+          <div className="flex gap-4">
+            <button className="px-4 py-3 cursor-pointer flex gap-2 items-center border border-gray-400 rounded-full hover:bg-gray-100 text-gray-700">
+              Descartar
+            </button>
+            <button className="px-4 py-3 cursor-pointer flex gap-2 items-center bg-brand rounded-full hover:bg-brand-light text-white">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                viewBox="0 0 256 256"
+              >
+                <path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"></path>
+              </svg>
+              Guardar cambios
+            </button>
+          </div>
+        </div>
+      </div>
+      <span className="relative overflow-hidden w-screen h-70 bg-white">
+        <div
+          onMouseEnter={() => SetHover("banner")}
+          onMouseLeave={() => SetHover(null)}
+          className={`cursor-pointer absolute ${hover === "banner" ? "opacity-100  bg-brand/40" : "opacity-0"} w-full h-full mt-[25px] transition-opacity duration-300 flex items-center justify-center`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="48"
+            height="48"
+            fill="#FFF"
+            viewBox="0 0 256 256"
+          >
+            <path d="M229.66,58.34l-32-32a8,8,0,0,0-11.32,0l-96,96A8,8,0,0,0,88,128v32a8,8,0,0,0,8,8h32a8,8,0,0,0,5.66-2.34l96-96A8,8,0,0,0,229.66,58.34ZM124.69,152H104V131.31l64-64L188.69,88ZM200,76.69,179.31,56,192,43.31,212.69,64ZM224,128v80a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V48A16,16,0,0,1,48,32h80a8,8,0,0,1,0,16H48V208H208V128a8,8,0,0,1,16,0Z"></path>
+          </svg>
+        </div>
+      </span>
       <div className="relative max-w-[820px] w-full mx-auto ">
         {negocio?.image_url ? (
-          <Image
-            src={negocio.image_url}
-            alt={negocio.nombre || "Sin nombre"}
-            width={300}
-            height={128}
-            className=" absolute -top-20 left-5   border-2 border-white  rounded-xl w-25 h-25 object-cover "
-          />
+          <>
+            <div
+              onMouseEnter={() => SetHover("profile")}
+              onMouseLeave={() => SetHover(null)}
+              className="absolute -top-20 left-5 w-25 h-25 border-2 border-white rounded-xl overflow-hidden cursor-pointer"
+            >
+              <Image
+                src={negocio.image_url}
+                alt={negocio.nombre || "Sin nombre"}
+                width={300}
+                height={128}
+                className="w-full h-full object-cover"
+              />
+              <div
+                className={`absolute inset-0 flex items-center justify-center bg-brand/40 transition-opacity duration-300 ${hover === "profile" ? "opacity-100" : "opacity-0"}`}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="32"
+                  height="32"
+                  fill="#FFF"
+                  viewBox="0 0 256 256"
+                >
+                  <path d="M229.66,58.34l-32-32a8,8,0,0,0-11.32,0l-96,96A8,8,0,0,0,88,128v32a8,8,0,0,0,8,8h32a8,8,0,0,0,5.66-2.34l96-96A8,8,0,0,0,229.66,58.34ZM124.69,152H104V131.31l64-64L188.69,88ZM200,76.69,179.31,56,192,43.31,212.69,64ZM224,128v80a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V48A16,16,0,0,1,48,32h80a8,8,0,0,1,0,16H48V208H208V128a8,8,0,0,1,16,0Z"></path>
+                </svg>
+              </div>
+            </div>
+          </>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <p className="text-gray-500">Imagen no disponible</p>
@@ -206,180 +259,387 @@ export default function EditarNegocioPage() {
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-8">
-          {infoDelDia.map((item, index) => (
-            <div
-              key={index}
-              className="bg-white p-4  border border-gray-200 rounded-xl"
-            >
-              <h3 className="uppercase text-xs text-gray-500">{item.title}</h3>
-              <p className="text-sm mt-1" style={{ color: item.color }}>
-                {item.value}
-              </p>
+        <form>
+          <h2 className="text-lg font-display font-[700] mt-6">
+            Información básica
+          </h2>
+          <div className="mt-4 flex flex-col gap-4 bg-white px-6 py-4 rounded-xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+              <div>
+                <Label>Nombre del negocio</Label>
+                <Input
+                  value={camposEditados.nombre ?? negocio?.nombre}
+                  onChange={(e) =>
+                    setCamposEditados((prev) => ({
+                      ...prev,
+                      nombre: e.target.value,
+                    }))
+                  }
+                  placeholder="Ej: Peluquería Canina"
+                />
+              </div>
+              <div className="w-full">
+                <CategoriasPicker
+                  categoria={camposEditados.categoria ?? negocio?.categoria}
+                  setCategoria={(value) => {
+                    if (value === negocio?.categoria) {
+                      setCamposEditados((prev) => {
+                        const updated = { ...prev };
+                        delete updated.categoria;
+                        return updated;
+                      });
+                      return;
+                    }
+                    setCamposEditados((prev) => ({
+                      ...prev,
+                      categoria: value,
+                    }));
+                  }}
+                />
+              </div>
             </div>
-          ))}
-        </div>
-        <main className="grid grid-cols-1 sm:grid-cols-[6fr_4fr] gap-6 mt-8">
-          <section className="flex flex-col gap-6">
-            <div className="bg-white p-4  border border-gray-200 rounded-xl">
-              <h2 className="font-display font-[700]">Sobre el negocio</h2>
-              <p className="text-gray-500 text-sm mt-2">
-                {negocio?.descripcion ||
-                  "Este negocio no ha proporcionado una descripción."}
-              </p>
+            <div>
+              <Label>Descripción</Label>
+              <textarea
+                id="descripcion"
+                placeholder="Cuéntanos un poco sobre tu negocio"
+                className="w-full border bg-background border-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+                value={camposEditados.descripcion ?? negocio?.descripcion}
+                onChange={(e) =>
+                  setCamposEditados((prev) => ({
+                    ...prev,
+                    descripcion: e.target.value,
+                  }))
+                }
+              />
             </div>
-            <div className="bg-white p-4  border border-gray-200 rounded-xl">
-              <h2 className="font-display font-[700]">Nuestro Equipo</h2>
+          </div>
+          <h2 className="text-lg font-display font-[700] mt-6">
+            Ubicación & contacto
+          </h2>
+          <div className="mt-4 flex flex-col gap-4 bg-white px-6 py-4 rounded-xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+              <div>
+                <Label>Dirección</Label>
+                <Input
+                  value={
+                    camposEditados.direccion ?? negocio?.direccion.split(",")[0]
+                  }
+                  onChange={(e) =>
+                    setCamposEditados((prev) => ({
+                      ...prev,
+                      direccion: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div>
+                <Label>Ciudad / Barrio</Label>
+                <Input
+                  value={
+                    camposEditados.ciudad ?? negocio?.direccion.split(",")[1]
+                  }
+                  onChange={(e) =>
+                    setCamposEditados((prev) => ({
+                      ...prev,
+                      ciudad: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+            </div>
+            <div>
+              <Label>Telefono</Label>
+              <Input
+                value={negocio?.telefono || ""}
+                onChange={(e) =>
+                  setCamposEditados((prev) => ({
+                    ...prev,
+                    telefono: e.target.value,
+                  }))
+                }
+              />
+            </div>
+          </div>
+          <h2 className="text-lg font-display font-[700] mt-6">
+            Horarios de atención
+          </h2>
+          <div className="mt-4 flex flex-col gap-2  bg-white p-6 rounded-xl">
+            {[...Array(7)].map((_, index) => {
+              const horariosSource =
+                camposEditados?.horarios ?? negocio?.horarios ?? [];
+              const horarioDia = horariosSource.find(
+                (h) => h?.dia === index + 1,
+              );
 
-              <div className="mt-4 flex flex-col gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-[#d1d1d1] flex items-center justify-center text-gray-700 font-medium">
-                    {negocioInfo?.dueño?.image_url ? (
-                      <Image
-                        width={40}
-                        height={40}
-                        src={negocioInfo.dueño.image_url}
-                        alt={negocioInfo.dueño.nombre}
-                        className="w-full h-full object-cover rounded-full"
-                      />
-                    ) : negocioInfo?.dueño?.nombre ? (
-                      negocioInfo?.dueño?.nombre.charAt(0).toUpperCase()
-                    ) : (
-                      "?"
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">
-                      {negocioInfo?.dueño?.nombre}
-                    </p>
-                    <p className="text-xs text-gray-500">Dueño</p>
+              return (
+                <div
+                  key={index}
+                  className={`px-3 py-2 flex items-center gap-4  ${!horarioDia?.activa ? "opacity-50" : "bg-brand-light/10 border border-brand/40 rounded-xl"}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={horarioDia?.activa || false}
+                    onChange={() => {
+                      const nuevaActivo = !horarioDia?.activa;
+                      setCamposEditados((prev) => {
+                        const horarios =
+                          prev.horarios || negocio?.horarios || [];
+                        const horarioIndex = horarios.findIndex(
+                          (h) => h.dia === index + 1,
+                        );
+                        if (horarioIndex !== -1) {
+                          const updatedHorarios = [...horarios];
+                          updatedHorarios[horarioIndex] = {
+                            ...updatedHorarios[horarioIndex],
+                            activa: nuevaActivo,
+                          };
+                          return { ...prev, horarios: updatedHorarios };
+                        } else {
+                          return {
+                            ...prev,
+                            horarios: [
+                              ...(horarios || []),
+                              {
+                                dia: index + 1,
+                                activa: nuevaActivo,
+                                desde: "09:00",
+                                hasta: "18:00",
+                              },
+                            ],
+                          };
+                        }
+                      });
+                    }}
+                    id={`dia-${index}`}
+                    className="w-4 h-4 accent-brand bg-gray-100 border-gray-300 rounded-xl focus:ring-2 focus:ring-brand transition"
+                  />
+                  <label
+                    htmlFor={`dia-${index}`}
+                    className="text-gray-700 text-sm"
+                  >
+                    {
+                      [
+                        "Lunes",
+                        "Martes",
+                        "Miércoles",
+                        "Jueves",
+                        "Viernes",
+                        "Sábado",
+                        "Domingo",
+                      ][index]
+                    }
+                  </label>
+                  <div className="flex items-center gap-2 ml-auto">
+                    <input
+                      type="time"
+                      value={horarioDia?.desde || "09:00"}
+                      onChange={(e) => {
+                        const nuevoDesde = e.target.value;
+                        setCamposEditados((prev) => {
+                          const horarios =
+                            prev.horarios || negocio?.horarios || [];
+                          const horarioIndex = horarios.findIndex(
+                            (h) => h.dia === index + 1,
+                          );
+                          if (horarioIndex !== -1) {
+                            const updatedHorarios = [...horarios];
+                            updatedHorarios[horarioIndex] = {
+                              ...updatedHorarios[horarioIndex],
+                              desde: nuevoDesde,
+                            };
+                            return { ...prev, horarios: updatedHorarios };
+                          } else {
+                            return {
+                              ...prev,
+                              horarios: [
+                                ...(horarios || []),
+                                {
+                                  dia: index + 1,
+                                  activa: true,
+                                  desde: nuevoDesde,
+                                  hasta: "18:00",
+                                },
+                              ],
+                            };
+                          }
+                        });
+                      }}
+                      className="w-30 text-center py-1 text-sm border bg-background border-brand/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-500">a</span>
+                    <input
+                      type="time"
+                      value={horarioDia?.hasta || "18:00"}
+                      onChange={(e) => {
+                        const nuevoHasta = e.target.value;
+                        setCamposEditados((prev) => {
+                          const horarios =
+                            prev.horarios || negocio?.horarios || [];
+                          const horarioIndex = horarios.findIndex(
+                            (h) => h.dia === index + 1,
+                          );
+                          if (horarioIndex !== -1) {
+                            const updatedHorarios = [...horarios];
+                            updatedHorarios[horarioIndex] = {
+                              ...updatedHorarios[horarioIndex],
+                              hasta: nuevoHasta,
+                            };
+                            return { ...prev, horarios: updatedHorarios };
+                          } else {
+                            return {
+                              ...prev,
+                              horarios: [
+                                ...(horarios || []),
+                                {
+                                  dia: index + 1,
+                                  activa: true,
+                                  desde: "09:00",
+                                  hasta: nuevoHasta,
+                                },
+                              ],
+                            };
+                          }
+                        });
+                      }}
+                      className="w-30 text-center py-1 text-sm  border bg-background border-brand/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
                   </div>
                 </div>
-                {negocioInfo?.empleados?.map((miembro, index) => (
-                  <div key={index} className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-[#d1d1d1] flex items-center justify-center text-gray-700 font-medium">
-                      {miembro.image_url ? (
-                        <Image
-                          width={40}
-                          height={40}
-                          src={miembro.image_url}
-                          alt={miembro.nombre}
-                          className="w-full h-full object-cover rounded-full"
-                        />
-                      ) : miembro.nombre ? (
-                        miembro.nombre.charAt(0).toUpperCase()
-                      ) : (
-                        "?"
-                      )}
-                    </div>
+              );
+            })}
+            <div className="flex w-full items-end flex-col gap-1">
+              <Label>Intervalo entre turnos</Label>
+              <Input
+                type="number"
+                value={
+                  camposEditados.intervaloTurnos ?? negocio?.intervaloTurnos
+                }
+                onChange={(e) =>
+                  setCamposEditados((prev) => ({
+                    ...prev,
+                    intervaloTurnos: parseInt(e.target.value, 10),
+                  }))
+                }
+                className="w-40"
+                placeholder="Ej: 30 (minutos)"
+              />
+            </div>
+          </div>
+          <h2 className="text-lg font-display font-[700] mt-6">Servicios</h2>
+          <div className="mt-4 flex flex-col gap-2  bg-white p-6 rounded-xl">
+            <ServiciosEditor
+              servicios={camposEditados?.servicios ?? negocio?.servicios ?? []}
+              onChange={(nuevos) =>
+                setCamposEditados((prev) => ({ ...prev, servicios: nuevos }))
+              }
+            />
+          </div>
+          <h2 className="text-lg font-display font-[700] mt-6">Equipo</h2>
+          <div className="mt-4 flex flex-col gap-4 pt-4 bg-white  rounded-xl">
+            <div className="px-6">
+              {negocioInfo?.empleados?.map((emp) => (
+                <div
+                  key={emp.idEmpleado}
+                  className="flex items-center  justify-between rounded-xl"
+                >
+                  <div className="flex items-center gap-3">
+                    <Image
+                      src={emp.image_url || "/default-profile.png"}
+                      alt={emp.nombre}
+                      width={40}
+                      height={40}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
                     <div>
-                      <p className="text-sm font-medium">{miembro.nombre}</p>
-                      <p className="text-xs text-gray-500">{miembro.rol}</p>
+                      <p className="font-display font-[600]">{emp.nombre}</p>
+                      <p className="text-sm text-gray-600">{emp.rol}</p>
                     </div>
                   </div>
-                ))}
-              </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setNegocioInfo((prev) => ({
+                        ...prev,
+                        empleados: prev.empleados.filter(
+                          (e) => e.idEmpleado !== emp.idEmpleado,
+                        ),
+                      }))
+                    }
+                    className="p-2  hover:text-[#E24B4A] border cursor-pointer border-gray-300 rounded-xl hover:border hover:bg-[#E24B4A]/10 hover:border-[#E24B4A] transition"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      fill="currentColor"
+                      viewBox="0 0 256 256"
+                    >
+                      <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+                    </svg>
+                  </button>
+                </div>
+              ))}
             </div>
-            <div className="bg-white  border border-gray-200 rounded-xl">
-              <div className="w-full flex justify-center items-center h-40 bg-[#f3f2f1]">
-                <span className="rounded-full flex justify-center items-center bg-brand h-10 w-10">
+
+            <div className="border-t cursor-pointer border-dashed  text-brand px-6 py-3  hover:bg-brand/10 border-brand flex items-center gap-2  w-full">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                fill="currentColor"
+                viewBox="0 0 256 256"
+              >
+                <path d="M256,136a8,8,0,0,1-8,8H232v16a8,8,0,0,1-16,0V144H200a8,8,0,0,1,0-16h16V112a8,8,0,0,1,16,0v16h16A8,8,0,0,1,256,136Zm-57.87,58.85a8,8,0,0,1-12.26,10.3C165.75,181.19,138.09,168,108,168s-57.75,13.19-77.87,37.15a8,8,0,0,1-12.25-10.3c14.94-17.78,33.52-30.41,54.17-37.17a68,68,0,1,1,71.9,0C164.6,164.44,183.18,177.07,198.13,194.85ZM108,152a52,52,0,1,0-52-52A52.06,52.06,0,0,0,108,152Z"></path>
+              </svg>
+              <p>Agregar empleado por email</p>
+            </div>
+          </div>
+          <div className="mt-8">
+            <h2 className="text-lg font-display font-[700] mb-2">
+              Zona de peligro
+            </h2>
+            <div className="border mb-[105px] border-red-200 bg-red-50 p-4 rounded-xl">
+              <div className="flex items-start gap-4">
+                <div className="text-red-500">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="#ffffff"
-                    viewBox="0 0 256 256"
+                    width="20"
+                    height="20"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
                   >
-                    <path d="M128,64a40,40,0,1,0,40,40A40,40,0,0,0,128,64Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,128Zm0-112a88.1,88.1,0,0,0-88,88c0,31.4,14.51,64.68,42,96.25a254.19,254.19,0,0,0,41.45,38.3,8,8,0,0,0,9.18,0A254.19,254.19,0,0,0,174,200.25c27.45-31.57,42-64.85,42-96.25A88.1,88.1,0,0,0,128,16Zm0,206c-16.53-13-72-60.75-72-118a72,72,0,0,1,144,0C200,161.23,144.53,209,128,222Z"></path>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.5"
+                      d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
-                </span>
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-red-700">
+                    Acciones irreversibles
+                  </p>
+                  <p className="text-sm text-red-600/80 mt-2">
+                    Eliminar el negocio borrará permanentemente todos sus datos:
+                    turnos, empleados y servicios asociados. Esta acción no se
+                    puede deshacer.
+                  </p>
+                </div>
               </div>
-              <div className="w-full p-4">
-                <h3 className=" text-sm">
-                  {negocio?.direccion?.split(",")[0] || "Sin dirección"}
-                </h3>
-                <p className="text-xs text-gray-500 mt-1">
-                  {negocio?.direccion?.split(",").slice(1).join(",") ||
-                    "Sin dirección completa"}
-                </p>
-              </div>
-            </div>
-            <div className="bg-white p-4  border border-gray-200 rounded-xl">
-              <h2 className="font-display font-[700]">Reseñas</h2>
-              <div className="mt-4 flex flex-col gap-4">
-                {reseñas.map((reseña) => (
-                  <div
-                    key={reseña.id}
-                    className="border border-gray-200 rounded-xl p-4"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="w-8 h-8 rounded-full bg-[#d1d1d1] flex items-center justify-center text-gray-700 font-medium">
-                        {reseña.nombre.charAt(0)}
-                      </span>
-                      <div>
-                        <p className="text-sm font-medium">{reseña.nombre}</p>
-                        <p className="text-xs text-gray-500">{reseña.tiempo}</p>
-                      </div>
-                    </div>
-                    <p className="text-sm mt-2">{reseña.texto}</p>
-                  </div>
-                ))}
+              <div className="mt-4 ">
+                <button
+                  type="button"
+                  className="mt-3 px-4 py-2 inline-flex items-center gap-2 bg-white text-red-600 border border-red-200 rounded-full hover:bg-red-100 transition"
+                >
+                  Eliminar este negocio
+                </button>
               </div>
             </div>
-          </section>
-          <section>
-            <div className="relative overflow-hidden bg-white p-4 gap-4 flex flex-col justify-center  rounded-xl">
-              <div className="absolute flex items-center justify-center left-0 bg-black/20 w-full h-full">
-                <p className="w-50 font-display text-xl font-[700] text-center ">
-                  En esta sección los usuarios pueden sacar turnos
-                </p>
-              </div>
-              <span className="h-4 w-30 rounded-full bg-gray-100" />
-              <div className="flex flex-col w-full gap-4">
-                {[1, 2, 3].map((item) => (
-                  <div key={item} className="bg-gray-100 p-4 rounded-xl">
-                    <span className="text-sm h-5 w-5 rounded-full bg-gray-300 flex items-center justify-center" />
-                  </div>
-                ))}
-              </div>
-              <span className="h-4 w-30 rounded-full bg-gray-100" />
-              <div className="flex gap-4">
-                {[1, 2, 3].map((item) => (
-                  <div
-                    key={item}
-                    className="bg-gray-100 p-4 py-6 flex items-center justify-center rounded-xl flex-1"
-                  >
-                    <span className="text-sm h-5 w-5 rounded-full bg-gray-300 flex items-center justify-center" />
-                  </div>
-                ))}
-              </div>
-              <span className="h-4 w-30 rounded-full bg-gray-100" />
-              <div className="flex gap-4">
-                {[1, 2, 3, 4, 5].map((item) => (
-                  <div
-                    key={item}
-                    className="bg-gray-100 p-2 py-4 flex items-center justify-center rounded-xl flex-1"
-                  >
-                    <span className="text-sm h-5  rounded-full bg-gray-300 flex items-center justify-center" />
-                  </div>
-                ))}
-              </div>
-              <span className="h-4 w-30 rounded-full bg-gray-100" />
-              <div className="flex gap-4">
-                {[1, 2, 3, 4, 5].map((item) => (
-                  <div key={item} className="w-full ">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <span
-                        key={star}
-                        className="bg-gray-100 p-2 mb-2 py-4 flex items-center justify-center rounded-xl flex-1"
-                      />
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        </main>
+          </div>
+        </form>
       </div>
     </>
   );

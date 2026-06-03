@@ -5,6 +5,7 @@ import Input from "../ui/Input";
 import Button from "../ui/Button";
 import Image from "next/image";
 import BuscarCiudad from "../ui/BuscarCiudad";
+import CategoriasPicker from "../ui/CategoriasPicker";
 
 const categorias = [
   { value: "peluqueria", label: "Peluquería" },
@@ -151,34 +152,19 @@ export default function Pag1({ nextPage, info, setInfo, handlePrev = null }) {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="categoria">Categoría *</Label>
-              <select
-                id="categoria"
-                className="w-full border bg-background border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
-                value={info.negocio.categoria}
-                onChange={(e) =>
+              <CategoriasPicker
+                categoria={info.negocio.categoria}
+                setCategoria={(value) =>
                   setInfo((prev) => ({
-                    ...info,
+                    ...prev,
                     negocio: {
                       ...prev.negocio,
-                      categoria: e.target.value,
+                      categoria: value,
                     },
                   }))
                 }
-              >
-                <option className="font-sans" value="">
-                  Selecciona una categoría
-                </option>
-                {categorias.map((categoria) => (
-                  <option
-                    className="font-sans"
-                    key={categoria.value}
-                    value={categoria.value}
-                  >
-                    {categoria.label}
-                  </option>
-                ))}
-              </select>
+              />
+
               {mensaje.errorNombre && (
                 <p className="p-2 bg-[#ef44443f] rounded-xl text-red-600 border border-red-600 text-sm mt-1">
                   {mensaje.errorNombre}
