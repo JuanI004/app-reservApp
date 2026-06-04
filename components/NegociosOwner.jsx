@@ -1,8 +1,10 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-export default function NegociosOwner({ negocios }) {
+export default function NegociosOwner({ negocios, handleDeleteNegocio }) {
+  const router = useRouter();
+
   if (!negocios || negocios.length === 0) {
     return <p className="text-gray-600">No tenés negocios creados todavía.</p>;
   }
@@ -10,7 +12,7 @@ export default function NegociosOwner({ negocios }) {
   return (
     <div className="grid gap-6 mt-6 grid-cols-1 md:grid-cols-2">
       {negocios.map((negocio, idx) => (
-        <Link href={`/negocio/${negocio.idNegocio}`} key={negocio.idNegocio}>
+        <>
           <article className="bg-white  rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
             <div className={`px-4 py-8 flex items-center bg-black `}>
               <div className="flex-shrink-0 ">
@@ -79,7 +81,10 @@ export default function NegociosOwner({ negocios }) {
 
                 <div className="mt-4 border-t border-t-gray-300 bg-background w-full p-4 flex items-center justify-between gap-4">
                   <div className="flex gap-2">
-                    <button className="px-3 py-2 bg-white border rounded-full text-sm text-red-600 hover:bg-red-300/15 cursor-pointer shadow-sm">
+                    <button
+                      onClick={() => handleDeleteNegocio(negocio.idNegocio)}
+                      className="px-3 py-2  bg-white border rounded-full text-sm text-red-600 hover:bg-red-300/15 cursor-pointer shadow-sm"
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="16"
@@ -91,14 +96,17 @@ export default function NegociosOwner({ negocios }) {
                       </svg>
                     </button>
                   </div>
-                  <button className="ml-auto cursor-pointer px-5 py-2 bg-brand text-white text-sm rounded-full shadow hover:bg-emerald-700">
+                  <button
+                    onClick={() => router.push(`/negocio/${negocio.idNegocio}`)}
+                    className="ml-auto cursor-pointer px-5 py-2 bg-brand text-white text-sm rounded-full shadow hover:bg-emerald-700"
+                  >
                     Ver negocio
                   </button>
                 </div>
               </div>
             </div>
           </article>
-        </Link>
+        </>
       ))}
     </div>
   );

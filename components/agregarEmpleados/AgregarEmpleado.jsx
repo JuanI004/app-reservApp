@@ -125,11 +125,6 @@ export default function AgregarEmpleado({ idNegocio, handleClose }) {
 
   return (
     <div className="relative max-w-2xl mx-auto  space-y-6">
-      <p className="text-sm pt-6 px-6 text-gray-500">
-        Buscá un usuario por email y asignale un rol y servicios dentro del
-        negocio.
-      </p>
-
       <div className="space-y-2 px-6">
         <Label htmlFor="emailEmpleado">Email del empleado</Label>
         <div className="flex flex-col sm:flex-row gap-3">

@@ -83,6 +83,25 @@ export default function HomeOwner({ session }) {
     },
   ];
 
+  async function eliminarNegocio(idNegocio) {
+    if (!idNegocio) return;
+    const confirmacion = window.confirm(
+      "¿Estás seguro de que deseas eliminar tu negocio? Esta acción no se puede deshacer.",
+    );
+    if (!confirmacion) return;
+
+    const { error } = await supabase
+      .from("Negocios")
+      .delete()
+      .eq("idNegocio", idNegocio);
+
+    if (error) {
+      console.error("Error eliminando negocio:", error.message);
+      return;
+    }
+    router.replace("/Home");
+  }
+
   async function uploadImageToStorage(file, bucketName, userId) {
     if (!file || !userId) {
       throw new Error("Missing file or user id for upload");
@@ -209,7 +228,10 @@ export default function HomeOwner({ session }) {
             No tenés negocios creados. ¡Empezá creando el tuyo!
           </p>
         ) : (
-          <NegociosOwner negocios={negocios} />
+          <NegociosOwner
+            negocios={negocios}
+            handleDeleteNegocio={eliminarNegocio}
+          />
         )}
       </div>
       {creando && (

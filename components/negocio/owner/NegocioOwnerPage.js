@@ -138,12 +138,18 @@ export default function NegocioOwnerPage({ negocio, session }) {
             </div>
             <div>
               {modalIsOpen.modo === "empleado" && (
-                <AgregarEmpleado
-                  idNegocio={negocio.idNegocio}
-                  handleClose={() =>
-                    setModalIsOpen({ activo: false, modo: null })
-                  }
-                />
+                <>
+                  <p className="text-sm pt-6 px-6 mb-4  text-gray-500">
+                    Buscá un usuario por email y asignale un rol y servicios
+                    dentro del negocio.
+                  </p>
+                  <AgregarEmpleado
+                    idNegocio={negocio.idNegocio}
+                    handleClose={() =>
+                      setModalIsOpen({ activo: false, modo: null })
+                    }
+                  />
+                </>
               )}
               {modalIsOpen.modo === "servicio" && (
                 <CrearServicio
@@ -209,7 +215,7 @@ export default function NegocioOwnerPage({ negocio, session }) {
           </div>
           <button
             onClick={() => router.push(`/negocio/${negocio.idNegocio}/editar`)}
-            className="bg-brand text-white hover:bg-brand-dark py-2 px-4 cursor-pointer flex items-center gap-2 hover:bg-brand-light rounded-xl transition-colors"
+            className="bg-brand text-white hover:bg-brand-dark py-2 px-4 leading-5 cursor-pointer flex items-center gap-2 hover:bg-brand-light rounded-xl transition-colors"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

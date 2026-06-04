@@ -7,6 +7,7 @@ import Input from "../../../../components/ui/Input";
 import Label from "../../../../components/ui/Label";
 import CategoriasPicker from "../../../../components/ui/CategoriasPicker";
 import ServiciosEditor from "../../../../components/ui/ServiciosEditor";
+import AgregarEmpleado from "../../../../components/agregarEmpleados/AgregarEmpleado";
 
 const reseñas = [
   {
@@ -42,6 +43,8 @@ export default function EditarNegocioPage() {
   const [cargando, setCargando] = useState(false);
   const [hover, SetHover] = useState(null);
   const [camposEditados, setCamposEditados] = useState({});
+  const [agregarEmpleado, setAgregarEmpleado] = useState(false);
+  const [mensaje, setMensaje] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -167,20 +170,167 @@ export default function EditarNegocioPage() {
     },
   ];
 
+  function validarCampos() {
+    const newErrores = {};
+    if (!camposEditados.nombre && !negocio?.nombre) {
+      newErrores.errorNombre = "El nombre del negocio es obligatorio.";
+    }
+    if (!camposEditados.categoria && !negocio?.categoria) {
+      newErrores.errorCategoria = "La categoría del negocio es obligatoria.";
+    }
+    if (!camposEditados.telefono && !negocio?.telefono) {
+      newErrores.errorTelefono = "El teléfono del negocio es obligatorio.";
+    }
+    if (camposEditados.direccion === "") {
+      newErrores.errorDireccion =
+        "La dirección del negocio no puede estar vacía.";
+    }
+    if (camposEditados.ciudad === "") {
+      newErrores.errorCiudad = "La ciudad del negocio no puede estar vacía.";
+    }
+
+    if (
+      camposEditados.intervaloTurnos === undefined ||
+      isNaN(camposEditados.intervaloTurnos)
+    ) {
+      newErrores.errorIntervaloTurnos =
+        "El intervalo entre turnos es obligatorio.";
+    }
+
+    setMensaje(newErrores);
+    return Object.keys(newErrores).length === 0;
+  }
+
+  function limpiarError(campo) {
+    setMensaje((prev) => {
+      if (!prev?.[campo]) return prev;
+      const nuevosErrores = { ...prev };
+      delete nuevosErrores[campo];
+      return nuevosErrores;
+    });
+  }
+
+  async function eliminarNegocio() {
+    if (!negocio?.idNegocio) return;
+    const confirmacion = window.confirm(
+      "¿Estás seguro de que deseas eliminar tu negocio? Esta acción no se puede deshacer.",
+    );
+    if (!confirmacion) return;
+    setCargando(true);
+    const { error } = await supabase
+      .from("Negocios")
+      .delete()
+      .eq("idNegocio", negocio.idNegocio);
+    setCargando(false);
+    if (error) {
+      console.error("Error eliminando negocio:", error.message);
+      setMensaje({ errorGeneral: "Hubo un error al eliminar el negocio." });
+      return;
+    }
+    router.replace("/Home");
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!validarCampos()) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    if (!negocio?.idNegocio) return;
+
+    const updatedData = {};
+
+    if (Object.prototype.hasOwnProperty.call(camposEditados, "nombre")) {
+      updatedData.nombre = camposEditados.nombre;
+    }
+    if (Object.prototype.hasOwnProperty.call(camposEditados, "categoria")) {
+      updatedData.categoria = camposEditados.categoria;
+    }
+    if (Object.prototype.hasOwnProperty.call(camposEditados, "descripcion")) {
+      updatedData.descripcion = camposEditados.descripcion;
+    }
+    if (Object.prototype.hasOwnProperty.call(camposEditados, "telefono")) {
+      updatedData.telefono = camposEditados.telefono;
+    }
+    if (Object.prototype.hasOwnProperty.call(camposEditados, "horarios")) {
+      updatedData.horarios = camposEditados.horarios;
+    }
+    if (
+      Object.prototype.hasOwnProperty.call(camposEditados, "intervaloTurnos")
+    ) {
+      updatedData.tamTurno = camposEditados.intervaloTurnos;
+    }
+    if (Object.prototype.hasOwnProperty.call(camposEditados, "servicios")) {
+      updatedData.servicios = camposEditados.servicios;
+    }
+    if (
+      Object.prototype.hasOwnProperty.call(camposEditados, "direccion") ||
+      Object.prototype.hasOwnProperty.call(camposEditados, "ciudad")
+    ) {
+      const [direccionActual = "", ciudadActual = ""] = (
+        negocio?.direccion ?? ""
+      ).split(",");
+
+      const direccionFinal =
+        camposEditados.direccion !== undefined
+          ? camposEditados.direccion
+          : direccionActual.trim();
+      const ciudadFinal =
+        camposEditados.ciudad !== undefined
+          ? camposEditados.ciudad
+          : ciudadActual.trim();
+
+      updatedData.direccion = `${direccionFinal}, ${ciudadFinal}`;
+    }
+
+    if (Object.keys(updatedData).length === 0) {
+      return;
+    }
+
+    setCargando(true);
+
+    const { error } = await supabase
+      .from("Negocios")
+      .update(updatedData)
+      .eq("idNegocio", negocio.idNegocio);
+
+    setCargando(false);
+
+    if (error) {
+      console.error("Error actualizando negocio:", error.message);
+      setMensaje({ errorGeneral: "Hubo un error al guardar los cambios." });
+      return;
+    }
+
+    setNegocio((prev) => ({ ...prev, ...updatedData }));
+    setMensaje({ exito: "Cambios guardados exitosamente." });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setCamposEditados({});
+  }
+
   console.log(negocioInfo);
 
   return (
-    <>
+    <form onSubmit={handleSubmit}>
       <div className="fixed  bottom-0 w-screen py-3 border-t border-gray-200 px-4 bg-white z-20 ">
-        <div className="max-w-[1160px] flex items-center justify-between w-full mx-auto">
+        <div className="max-w-[1160px] flex items-center justify-between w-full  mx-auto">
           <p className="text-gray-500 text-sm">
             Los cambios no guardados se perderán
           </p>
           <div className="flex gap-4">
-            <button className="px-4 py-3 cursor-pointer flex gap-2 items-center border border-gray-400 rounded-full hover:bg-gray-100 text-gray-700">
+            <button
+              type="button"
+              className="px-4 py-3 cursor-pointer flex gap-2 items-center border border-gray-400 rounded-full hover:bg-gray-100 text-gray-700"
+              onClick={() => router.back()}
+            >
               Descartar
             </button>
-            <button className="px-4 py-3 cursor-pointer flex gap-2 items-center bg-brand rounded-full hover:bg-brand-light text-white">
+            <button
+              type="submit"
+              disabled={cargando}
+              className="px-4 py-3 cursor-pointer flex gap-2 items-center bg-brand rounded-full hover:bg-brand-light text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -195,7 +345,7 @@ export default function EditarNegocioPage() {
           </div>
         </div>
       </div>
-      <span className="relative overflow-hidden w-screen h-70 bg-white">
+      <div className="relative overflow-hidden w-screen h-70 bg-white">
         <div
           onMouseEnter={() => SetHover("banner")}
           onMouseLeave={() => SetHover(null)}
@@ -211,14 +361,14 @@ export default function EditarNegocioPage() {
             <path d="M229.66,58.34l-32-32a8,8,0,0,0-11.32,0l-96,96A8,8,0,0,0,88,128v32a8,8,0,0,0,8,8h32a8,8,0,0,0,5.66-2.34l96-96A8,8,0,0,0,229.66,58.34ZM124.69,152H104V131.31l64-64L188.69,88ZM200,76.69,179.31,56,192,43.31,212.69,64ZM224,128v80a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V48A16,16,0,0,1,48,32h80a8,8,0,0,1,0,16H48V208H208V128a8,8,0,0,1,16,0Z"></path>
           </svg>
         </div>
-      </span>
-      <div className="relative max-w-[820px] w-full mx-auto ">
+      </div>
+      <div className="relative max-w-[820px] px-2 w-full mx-auto ">
         {negocio?.image_url ? (
           <>
             <div
               onMouseEnter={() => SetHover("profile")}
               onMouseLeave={() => SetHover(null)}
-              className="absolute -top-20 left-5 w-25 h-25 border-2 border-white rounded-xl overflow-hidden cursor-pointer"
+              className="absolute -top-30 left-5 w-25 h-25 border-2 border-white rounded-xl overflow-hidden cursor-pointer"
             >
               <Image
                 src={negocio.image_url}
@@ -259,129 +409,253 @@ export default function EditarNegocioPage() {
             </div>
           ))}
         </div>
-        <form>
-          <h2 className="text-lg font-display font-[700] mt-6">
-            Información básica
-          </h2>
-          <div className="mt-4 flex flex-col gap-4 bg-white px-6 py-4 rounded-xl">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
-              <div>
-                <Label>Nombre del negocio</Label>
-                <Input
-                  value={camposEditados.nombre ?? negocio?.nombre}
-                  onChange={(e) =>
-                    setCamposEditados((prev) => ({
-                      ...prev,
-                      nombre: e.target.value,
-                    }))
-                  }
-                  placeholder="Ej: Peluquería Canina"
-                />
-              </div>
-              <div className="w-full">
-                <CategoriasPicker
-                  categoria={camposEditados.categoria ?? negocio?.categoria}
-                  setCategoria={(value) => {
-                    if (value === negocio?.categoria) {
-                      setCamposEditados((prev) => {
-                        const updated = { ...prev };
-                        delete updated.categoria;
-                        return updated;
-                      });
-                      return;
-                    }
-                    setCamposEditados((prev) => ({
-                      ...prev,
-                      categoria: value,
-                    }));
-                  }}
-                />
-              </div>
-            </div>
-            <div>
-              <Label>Descripción</Label>
-              <textarea
-                id="descripcion"
-                placeholder="Cuéntanos un poco sobre tu negocio"
-                className="w-full border bg-background border-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
-                value={camposEditados.descripcion ?? negocio?.descripcion}
-                onChange={(e) =>
-                  setCamposEditados((prev) => ({
-                    ...prev,
-                    descripcion: e.target.value,
-                  }))
-                }
-              />
-            </div>
-          </div>
-          <h2 className="text-lg font-display font-[700] mt-6">
-            Ubicación & contacto
-          </h2>
-          <div className="mt-4 flex flex-col gap-4 bg-white px-6 py-4 rounded-xl">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
-              <div>
-                <Label>Dirección</Label>
-                <Input
-                  value={
-                    camposEditados.direccion ?? negocio?.direccion.split(",")[0]
-                  }
-                  onChange={(e) =>
-                    setCamposEditados((prev) => ({
-                      ...prev,
-                      direccion: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div>
-                <Label>Ciudad / Barrio</Label>
-                <Input
-                  value={
-                    camposEditados.ciudad ?? negocio?.direccion.split(",")[1]
-                  }
-                  onChange={(e) =>
-                    setCamposEditados((prev) => ({
-                      ...prev,
-                      ciudad: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-            </div>
-            <div>
-              <Label>Telefono</Label>
-              <Input
-                value={negocio?.telefono || ""}
-                onChange={(e) =>
-                  setCamposEditados((prev) => ({
-                    ...prev,
-                    telefono: e.target.value,
-                  }))
-                }
-              />
-            </div>
-          </div>
-          <h2 className="text-lg font-display font-[700] mt-6">
-            Horarios de atención
-          </h2>
-          <div className="mt-4 flex flex-col gap-2  bg-white p-6 rounded-xl">
-            {[...Array(7)].map((_, index) => {
-              const horariosSource =
-                camposEditados?.horarios ?? negocio?.horarios ?? [];
-              const horarioDia = horariosSource.find(
-                (h) => h?.dia === index + 1,
-              );
 
-              return (
-                <div
-                  key={index}
-                  className={`px-3 py-2 flex items-center gap-4  ${!horarioDia?.activa ? "opacity-50" : "bg-brand-light/10 border border-brand/40 rounded-xl"}`}
+        {mensaje?.errorGeneral && (
+          <p className="text-sm mt-1 p-2 rounded-lg border bg-[#ef44443f] text-red-600 border-red-600">
+            {mensaje.errorGeneral}
+          </p>
+        )}
+        {mensaje?.exito && (
+          <p className="text-sm mt-1 p-2 rounded-lg border bg-[#10b9813f] text-green-600 border-green-600">
+            {mensaje.exito}
+          </p>
+        )}
+
+        <h2 className="text-lg font-display font-[700] mt-6">
+          Información básica
+        </h2>
+        <div className="mt-4 flex flex-col gap-4 bg-white px-6 py-4 rounded-xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+            <div>
+              <Label>Nombre del negocio</Label>
+              <Input
+                value={camposEditados.nombre ?? negocio?.nombre}
+                onChange={(e) => {
+                  limpiarError("errorNombre");
+                  setCamposEditados((prev) => ({
+                    ...prev,
+                    nombre: e.target.value,
+                  }));
+                }}
+                placeholder="Ej: Peluquería Canina"
+              />
+              {mensaje?.errorNombre && (
+                <p className="text-sm mt-1 p-2 rounded-lg border bg-[#ef44443f] text-red-600 border-red-600">
+                  {mensaje.errorNombre}
+                </p>
+              )}
+            </div>
+            <div className="w-full">
+              <CategoriasPicker
+                categoria={camposEditados.categoria ?? negocio?.categoria}
+                setCategoria={(value) => {
+                  limpiarError("errorCategoria");
+                  if (value === negocio?.categoria) {
+                    setCamposEditados((prev) => {
+                      const updated = { ...prev };
+                      delete updated.categoria;
+                      return updated;
+                    });
+                    return;
+                  }
+                  setCamposEditados((prev) => ({
+                    ...prev,
+                    categoria: value,
+                  }));
+                }}
+              />
+              {mensaje?.errorCategoria && (
+                <p className="text-sm mt-1 p-2 rounded-lg border bg-[#ef44443f] text-red-600 border-red-600">
+                  {mensaje.errorCategoria}
+                </p>
+              )}
+            </div>
+          </div>
+          <div>
+            <Label>Descripción</Label>
+            <textarea
+              id="descripcion"
+              placeholder="Cuéntanos un poco sobre tu negocio"
+              className="w-full border bg-background border-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+              value={camposEditados.descripcion ?? negocio?.descripcion}
+              onChange={(e) => {
+                if (e.target.value === negocio?.descripcion) {
+                  setCamposEditados((prev) => {
+                    const updated = { ...prev };
+                    delete updated.descripcion;
+                    return updated;
+                  });
+                  return;
+                }
+                setCamposEditados((prev) => ({
+                  ...prev,
+                  descripcion: e.target.value,
+                }));
+              }}
+            />
+          </div>
+        </div>
+        <h2 className="text-lg font-display font-[700] mt-6">
+          Ubicación & contacto
+        </h2>
+        <div className="mt-4 flex flex-col gap-4 bg-white px-6 py-4 rounded-xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+            <div>
+              <Label>Dirección</Label>
+              <Input
+                value={
+                  camposEditados.direccion ?? negocio?.direccion.split(",")[0]
+                }
+                onChange={(e) => {
+                  limpiarError("errorDireccion");
+                  if (e.target.value === negocio?.direccion.split(",")[0]) {
+                    setCamposEditados((prev) => {
+                      const updated = { ...prev };
+                      delete updated.direccion;
+                      return updated;
+                    });
+                    return;
+                  }
+                  setCamposEditados((prev) => ({
+                    ...prev,
+                    direccion: e.target.value,
+                  }));
+                }}
+              />
+              {mensaje?.errorDireccion && (
+                <p className="text-sm mt-1 p-2 rounded-lg border bg-[#ef44443f] text-red-600 border-red-600">
+                  {mensaje.errorDireccion}
+                </p>
+              )}
+            </div>
+            <div>
+              <Label>Ciudad / Barrio</Label>
+              <Input
+                value={
+                  camposEditados.ciudad ?? negocio?.direccion.split(",")[1]
+                }
+                onChange={(e) => {
+                  limpiarError("errorCiudad");
+                  if (e.target.value === negocio?.direccion.split(",")[1]) {
+                    setCamposEditados((prev) => {
+                      const updated = { ...prev };
+                      delete updated.ciudad;
+                      return updated;
+                    });
+                    return;
+                  }
+                  setCamposEditados((prev) => ({
+                    ...prev,
+                    ciudad: e.target.value,
+                  }));
+                }}
+              />
+              {mensaje?.errorCiudad && (
+                <p className="text-sm mt-1 p-2 rounded-lg border bg-[#ef44443f] text-red-600 border-red-600">
+                  {mensaje.errorCiudad}
+                </p>
+              )}
+            </div>
+          </div>
+          <div>
+            <Label>Telefono</Label>
+            <Input
+              value={camposEditados.telefono ?? negocio?.telefono ?? ""}
+              onChange={(e) => {
+                limpiarError("errorTelefono");
+                if (e.target.value === negocio?.telefono) {
+                  setCamposEditados((prev) => {
+                    const updated = { ...prev };
+                    delete updated.telefono;
+                    return updated;
+                  });
+                  return;
+                }
+                setCamposEditados((prev) => ({
+                  ...prev,
+                  telefono: e.target.value,
+                }));
+              }}
+            />
+            {mensaje?.errorTelefono && (
+              <p className="text-sm mt-1 p-2 rounded-lg border bg-[#ef44443f] text-red-600 border-red-600">
+                {mensaje.errorTelefono}
+              </p>
+            )}
+          </div>
+        </div>
+        <h2 className="text-lg font-display font-[700] mt-6">
+          Horarios de atención
+        </h2>
+        <div className="mt-4 flex flex-col gap-2  bg-white p-6 rounded-xl">
+          {[...Array(7)].map((_, index) => {
+            const horariosSource =
+              camposEditados?.horarios ?? negocio?.horarios ?? [];
+            const horarioDia = horariosSource.find((h) => h?.dia === index + 1);
+
+            return (
+              <div
+                key={index}
+                className={`px-3 py-2 flex items-center gap-4  ${!horarioDia?.activa ? "opacity-50" : "bg-brand-light/10 border border-brand/40 rounded-xl"}`}
+              >
+                <input
+                  type="checkbox"
+                  checked={horarioDia?.activa || false}
+                  onChange={() => {
+                    const nuevaActivo = !horarioDia?.activa;
+                    setCamposEditados((prev) => {
+                      const horarios = prev.horarios || negocio?.horarios || [];
+                      const horarioIndex = horarios.findIndex(
+                        (h) => h.dia === index + 1,
+                      );
+                      if (horarioIndex !== -1) {
+                        const updatedHorarios = [...horarios];
+                        updatedHorarios[horarioIndex] = {
+                          ...updatedHorarios[horarioIndex],
+                          activa: nuevaActivo,
+                        };
+                        return { ...prev, horarios: updatedHorarios };
+                      } else {
+                        return {
+                          ...prev,
+                          horarios: [
+                            ...(horarios || []),
+                            {
+                              dia: index + 1,
+                              activa: nuevaActivo,
+                              desde: "09:00",
+                              hasta: "18:00",
+                            },
+                          ],
+                        };
+                      }
+                    });
+                  }}
+                  id={`dia-${index}`}
+                  className="w-4 h-4 accent-brand bg-gray-100 border-gray-300 rounded-xl focus:ring-2 focus:ring-brand transition"
+                />
+                <label
+                  htmlFor={`dia-${index}`}
+                  className="text-gray-700 text-sm"
                 >
+                  {
+                    [
+                      "Lunes",
+                      "Martes",
+                      "Miércoles",
+                      "Jueves",
+                      "Viernes",
+                      "Sábado",
+                      "Domingo",
+                    ][index]
+                  }
+                </label>
+                <div className="flex items-center gap-2 ml-auto">
                   <input
-                    type="checkbox"
-                    checked={horarioDia?.activa || false}
-                    onChange={() => {
-                      const nuevaActivo = !horarioDia?.activa;
+                    type="time"
+                    value={horarioDia?.desde || "09:00"}
+                    onChange={(e) => {
+                      const nuevoDesde = e.target.value;
                       setCamposEditados((prev) => {
                         const horarios =
                           prev.horarios || negocio?.horarios || [];
@@ -392,7 +666,7 @@ export default function EditarNegocioPage() {
                           const updatedHorarios = [...horarios];
                           updatedHorarios[horarioIndex] = {
                             ...updatedHorarios[horarioIndex],
-                            activa: nuevaActivo,
+                            desde: nuevoDesde,
                           };
                           return { ...prev, horarios: updatedHorarios };
                         } else {
@@ -402,8 +676,8 @@ export default function EditarNegocioPage() {
                               ...(horarios || []),
                               {
                                 dia: index + 1,
-                                activa: nuevaActivo,
-                                desde: "09:00",
+                                activa: true,
+                                desde: nuevoDesde,
                                 hasta: "18:00",
                               },
                             ],
@@ -411,132 +685,86 @@ export default function EditarNegocioPage() {
                         }
                       });
                     }}
-                    id={`dia-${index}`}
-                    className="w-4 h-4 accent-brand bg-gray-100 border-gray-300 rounded-xl focus:ring-2 focus:ring-brand transition"
+                    className="w-30 text-center py-1 text-sm border bg-background border-brand/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <label
-                    htmlFor={`dia-${index}`}
-                    className="text-gray-700 text-sm"
-                  >
-                    {
-                      [
-                        "Lunes",
-                        "Martes",
-                        "Miércoles",
-                        "Jueves",
-                        "Viernes",
-                        "Sábado",
-                        "Domingo",
-                      ][index]
-                    }
-                  </label>
-                  <div className="flex items-center gap-2 ml-auto">
-                    <input
-                      type="time"
-                      value={horarioDia?.desde || "09:00"}
-                      onChange={(e) => {
-                        const nuevoDesde = e.target.value;
-                        setCamposEditados((prev) => {
-                          const horarios =
-                            prev.horarios || negocio?.horarios || [];
-                          const horarioIndex = horarios.findIndex(
-                            (h) => h.dia === index + 1,
-                          );
-                          if (horarioIndex !== -1) {
-                            const updatedHorarios = [...horarios];
-                            updatedHorarios[horarioIndex] = {
-                              ...updatedHorarios[horarioIndex],
-                              desde: nuevoDesde,
-                            };
-                            return { ...prev, horarios: updatedHorarios };
-                          } else {
-                            return {
-                              ...prev,
-                              horarios: [
-                                ...(horarios || []),
-                                {
-                                  dia: index + 1,
-                                  activa: true,
-                                  desde: nuevoDesde,
-                                  hasta: "18:00",
-                                },
-                              ],
-                            };
-                          }
-                        });
-                      }}
-                      className="w-30 text-center py-1 text-sm border bg-background border-brand/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span className="text-gray-500">a</span>
-                    <input
-                      type="time"
-                      value={horarioDia?.hasta || "18:00"}
-                      onChange={(e) => {
-                        const nuevoHasta = e.target.value;
-                        setCamposEditados((prev) => {
-                          const horarios =
-                            prev.horarios || negocio?.horarios || [];
-                          const horarioIndex = horarios.findIndex(
-                            (h) => h.dia === index + 1,
-                          );
-                          if (horarioIndex !== -1) {
-                            const updatedHorarios = [...horarios];
-                            updatedHorarios[horarioIndex] = {
-                              ...updatedHorarios[horarioIndex],
-                              hasta: nuevoHasta,
-                            };
-                            return { ...prev, horarios: updatedHorarios };
-                          } else {
-                            return {
-                              ...prev,
-                              horarios: [
-                                ...(horarios || []),
-                                {
-                                  dia: index + 1,
-                                  activa: true,
-                                  desde: "09:00",
-                                  hasta: nuevoHasta,
-                                },
-                              ],
-                            };
-                          }
-                        });
-                      }}
-                      className="w-30 text-center py-1 text-sm  border bg-background border-brand/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
+                  <span className="text-gray-500">a</span>
+                  <input
+                    type="time"
+                    value={horarioDia?.hasta || "18:00"}
+                    onChange={(e) => {
+                      const nuevoHasta = e.target.value;
+                      setCamposEditados((prev) => {
+                        const horarios =
+                          prev.horarios || negocio?.horarios || [];
+                        const horarioIndex = horarios.findIndex(
+                          (h) => h.dia === index + 1,
+                        );
+                        if (horarioIndex !== -1) {
+                          const updatedHorarios = [...horarios];
+                          updatedHorarios[horarioIndex] = {
+                            ...updatedHorarios[horarioIndex],
+                            hasta: nuevoHasta,
+                          };
+                          return { ...prev, horarios: updatedHorarios };
+                        } else {
+                          return {
+                            ...prev,
+                            horarios: [
+                              ...(horarios || []),
+                              {
+                                dia: index + 1,
+                                activa: true,
+                                desde: "09:00",
+                                hasta: nuevoHasta,
+                              },
+                            ],
+                          };
+                        }
+                      });
+                    }}
+                    className="w-30 text-center py-1 text-sm  border bg-background border-brand/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
                 </div>
-              );
-            })}
-            <div className="flex w-full items-end flex-col gap-1">
-              <Label>Intervalo entre turnos</Label>
-              <Input
-                type="number"
-                value={
-                  camposEditados.intervaloTurnos ?? negocio?.intervaloTurnos
-                }
-                onChange={(e) =>
-                  setCamposEditados((prev) => ({
-                    ...prev,
-                    intervaloTurnos: parseInt(e.target.value, 10),
-                  }))
-                }
-                className="w-40"
-                placeholder="Ej: 30 (minutos)"
-              />
-            </div>
+              </div>
+            );
+          })}
+          <div className="flex w-full items-end flex-col gap-1">
+            <Label>Intervalo entre turnos</Label>
+            <Input
+              type="number"
+              value={camposEditados.intervaloTurnos ?? negocio?.tamTurno}
+              onChange={(e) =>
+                setCamposEditados((prev) => ({
+                  ...prev,
+                  intervaloTurnos: parseInt(e.target.value, 10),
+                }))
+              }
+              className="w-40"
+              placeholder="Ej: 30 (minutos)"
+            />
+            {mensaje?.errorIntervaloTurnos && (
+              <p className="text-sm mt-1 p-2 rounded-lg border bg-[#ef44443f] text-red-600 border-red-600">
+                {mensaje.errorIntervaloTurnos}
+              </p>
+            )}
           </div>
-          <h2 className="text-lg font-display font-[700] mt-6">Servicios</h2>
-          <div className="mt-4 flex flex-col gap-2  bg-white p-6 rounded-xl">
+        </div>
+        <h2 className="text-lg font-display font-[700] mt-6">Servicios</h2>
+        <div className="mt-4 flex flex-col gap-2  bg-white p-6 rounded-xl">
+          {negocio?.servicios && negocio.servicios.length > 0 ? (
             <ServiciosEditor
               servicios={camposEditados?.servicios ?? negocio?.servicios ?? []}
               onChange={(nuevos) =>
                 setCamposEditados((prev) => ({ ...prev, servicios: nuevos }))
               }
             />
-          </div>
-          <h2 className="text-lg font-display font-[700] mt-6">Equipo</h2>
-          <div className="mt-4 flex flex-col gap-4 pt-4 bg-white  rounded-xl">
+          ) : (
+            <p className="text-gray-500 px-6">No hay servicios registrados</p>
+          )}
+        </div>
+        <h2 className="text-lg font-display font-[700] mt-6">Equipo</h2>
+        <div className="mt-4 flex flex-col gap-4 pt-4 bg-white  rounded-xl">
+          {negocioInfo?.empleados && negocioInfo?.empleados?.length > 0 ? (
             <div className="px-6">
               {negocioInfo?.empleados?.map((emp) => (
                 <div
@@ -581,8 +809,15 @@ export default function EditarNegocioPage() {
                 </div>
               ))}
             </div>
+          ) : (
+            <p className="text-gray-500 px-6">No hay empleados registrados</p>
+          )}
 
-            <div className="border-t cursor-pointer border-dashed  text-brand px-6 py-3  hover:bg-brand/10 border-brand flex items-center gap-2  w-full">
+          <div
+            onClick={() => setAgregarEmpleado(true)}
+            className="border-t cursor-pointer justify-between border-dashed  text-brand px-6 py-3  hover:bg-brand/10 border-brand flex   w-full"
+          >
+            <div className="flex items-center gap-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="20"
@@ -594,53 +829,77 @@ export default function EditarNegocioPage() {
               </svg>
               <p>Agregar empleado por email</p>
             </div>
-          </div>
-          <div className="mt-8">
-            <h2 className="text-lg font-display font-[700] mb-2">
-              Zona de peligro
-            </h2>
-            <div className="border mb-[105px] border-red-200 bg-red-50 p-4 rounded-xl">
-              <div className="flex items-start gap-4">
-                <div className="text-red-500">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="1.5"
-                      d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium text-red-700">
-                    Acciones irreversibles
-                  </p>
-                  <p className="text-sm text-red-600/80 mt-2">
-                    Eliminar el negocio borrará permanentemente todos sus datos:
-                    turnos, empleados y servicios asociados. Esta acción no se
-                    puede deshacer.
-                  </p>
-                </div>
-              </div>
-              <div className="mt-4 ">
-                <button
-                  type="button"
-                  className="mt-3 px-4 py-2 inline-flex items-center gap-2 bg-white text-red-600 border border-red-200 rounded-full hover:bg-red-100 transition"
+            {agregarEmpleado && (
+              <button
+                type="button"
+                className="text-brand h-[35px] px-2 cursor-pointer hover:text-brand-light transition"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setAgregarEmpleado(false);
+                }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  fill="currentColor"
+                  viewBox="0 0 256 256"
                 >
-                  Eliminar este negocio
-                </button>
+                  <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+                </svg>
+              </button>
+            )}
+          </div>
+          {agregarEmpleado && (
+            <AgregarEmpleado handleClose={() => setAgregarEmpleado(false)} />
+          )}
+        </div>
+        <div className="mt-8">
+          <h2 className="text-lg font-display font-[700] mb-2">
+            Zona de peligro
+          </h2>
+          <div className="border mb-[105px] border-red-200 bg-red-50 p-4 rounded-xl">
+            <div className="flex items-start gap-4">
+              <div className="text-red-500">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.5"
+                    d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-red-700">
+                  Acciones irreversibles
+                </p>
+                <p className="text-sm text-red-600/80 mt-2">
+                  Eliminar el negocio borrará permanentemente todos sus datos:
+                  turnos, empleados y servicios asociados. Esta acción no se
+                  puede deshacer.
+                </p>
               </div>
             </div>
+            <div className="mt-4 ">
+              <button
+                type="button"
+                onClick={eliminarNegocio}
+                className="mt-3 px-4 py-2 cursor-pointer inline-flex items-center gap-2 bg-white text-red-600 border border-red-200 rounded-full hover:bg-red-100 transition"
+              >
+                Eliminar este negocio
+              </button>
+            </div>
           </div>
-        </form>
+        </div>
       </div>
-    </>
+    </form>
   );
 }
