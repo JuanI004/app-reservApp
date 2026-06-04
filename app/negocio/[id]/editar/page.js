@@ -9,32 +9,6 @@ import CategoriasPicker from "../../../../components/ui/CategoriasPicker";
 import ServiciosEditor from "../../../../components/ui/ServiciosEditor";
 import AgregarEmpleado from "../../../../components/agregarEmpleados/AgregarEmpleado";
 
-const reseñas = [
-  {
-    id: 1,
-    nombre: "Carolina A.",
-    rating: 5,
-    tiempo: "hace 2 días",
-    texto:
-      "Excelente atención, Juan es increíble. Salí re contenta con el resultado.",
-  },
-  {
-    id: 2,
-    nombre: "Juan M.",
-    rating: 5,
-    tiempo: "hace 1 semana",
-    texto:
-      "Rosa me atendió muy bien. El sistema de turnos online es muy práctico, sin filas.",
-  },
-  {
-    id: 3,
-    nombre: "Sofía L.",
-    rating: 4,
-    tiempo: "hace 2 semanas",
-    texto: "El lugar es muy lindo y el ambiente agradable. Volveré sin dudas.",
-  },
-];
-
 export default function EditarNegocioPage() {
   const { id } = useParams();
   const [negocio, setNegocio] = useState(null);
@@ -45,6 +19,7 @@ export default function EditarNegocioPage() {
   const [camposEditados, setCamposEditados] = useState({});
   const [agregarEmpleado, setAgregarEmpleado] = useState(false);
   const [mensaje, setMensaje] = useState(null);
+  const [preview, setPreview] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -170,8 +145,34 @@ export default function EditarNegocioPage() {
     },
   ];
 
+  function handleFileChange(e, fileType) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const objectUrl = URL.createObjectURL(file);
+    setCamposEditados((prev) => ({
+      ...prev,
+      [fileType === "perfil" ? "image_url" : "banner_url"]: file,
+    }));
+
+    setPreview((prev) => {
+      const previewIndex = prev.findIndex((item) => item.fileType === fileType);
+
+      if (previewIndex === -1) {
+        return [...prev, { objectUrl, fileType }];
+      }
+
+      const nextPreview = [...prev];
+      nextPreview[previewIndex] = { objectUrl, fileType };
+      return nextPreview;
+    });
+    setMensaje((prev) => ({ ...prev, errorImagen: null }));
+  }
+
   function validarCampos() {
     const newErrores = {};
+    const intervaloTurnos =
+      camposEditados.intervaloTurnos ?? negocio?.tamTurno;
+
     if (!camposEditados.nombre && !negocio?.nombre) {
       newErrores.errorNombre = "El nombre del negocio es obligatorio.";
     }
@@ -190,8 +191,9 @@ export default function EditarNegocioPage() {
     }
 
     if (
-      camposEditados.intervaloTurnos === undefined ||
-      isNaN(camposEditados.intervaloTurnos)
+      intervaloTurnos === undefined ||
+      intervaloTurnos === null ||
+      isNaN(intervaloTurnos)
     ) {
       newErrores.errorIntervaloTurnos =
         "El intervalo entre turnos es obligatorio.";
@@ -208,6 +210,27 @@ export default function EditarNegocioPage() {
       delete nuevosErrores[campo];
       return nuevosErrores;
     });
+  }
+
+  async function subirImagenNegocio(file, bucket, prefijo) {
+    const extension = file.name.includes(".")
+      ? `.${file.name.split(".").pop().toLowerCase()}`
+      : "";
+    const ruta = `${prefijo}/${negocio.idNegocio}-${Date.now()}${extension}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(ruta, file, {
+        upsert: true,
+      });
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(ruta);
+
+    return data.publicUrl;
   }
 
   async function eliminarNegocio() {
@@ -241,6 +264,31 @@ export default function EditarNegocioPage() {
 
     const updatedData = {};
 
+    try {
+      if (camposEditados.image_url instanceof File) {
+        updatedData.image_url = await subirImagenNegocio(
+          camposEditados.image_url,
+          "negocio",
+          "perfil",
+        );
+      }
+
+      if (camposEditados.banner_url instanceof File) {
+        updatedData.banner_url = await subirImagenNegocio(
+          camposEditados.banner_url,
+          "negocio_banner",
+          "banner",
+        );
+      }
+    } catch (uploadError) {
+      console.error("Error subiendo imagen:", uploadError);
+      setCargando(false);
+      setMensaje({
+        errorGeneral: "Hubo un error al subir las imágenes del negocio.",
+      });
+      return;
+    }
+
     if (Object.prototype.hasOwnProperty.call(camposEditados, "nombre")) {
       updatedData.nombre = camposEditados.nombre;
     }
@@ -264,6 +312,7 @@ export default function EditarNegocioPage() {
     if (Object.prototype.hasOwnProperty.call(camposEditados, "servicios")) {
       updatedData.servicios = camposEditados.servicios;
     }
+    
     if (
       Object.prototype.hasOwnProperty.call(camposEditados, "direccion") ||
       Object.prototype.hasOwnProperty.call(camposEditados, "ciudad")
@@ -307,9 +356,13 @@ export default function EditarNegocioPage() {
     setMensaje({ exito: "Cambios guardados exitosamente." });
     window.scrollTo({ top: 0, behavior: "smooth" });
     setCamposEditados({});
+    setPreview([]);
   }
 
   console.log(negocioInfo);
+
+  const bannerPreview = preview.find((item) => item.fileType === "banner");
+  const profilePreview = preview.find((item) => item.fileType === "perfil");
 
   return (
     <form onSubmit={handleSubmit}>
@@ -346,10 +399,26 @@ export default function EditarNegocioPage() {
         </div>
       </div>
       <div className="relative overflow-hidden w-screen h-70 bg-white">
+        {negocio?.banner_url || bannerPreview?.objectUrl ? (
+          <Image
+            src={
+              bannerPreview?.objectUrl
+                ? bannerPreview.objectUrl
+                : negocio.banner_url
+            }
+            alt="Banner del negocio"
+            width={800}
+            height={300}
+            className="w-full h-full object-cover "
+          />
+        ) : (
+          <p className="text-gray-500">Imagen no disponible</p>
+        )}
         <div
           onMouseEnter={() => SetHover("banner")}
           onMouseLeave={() => SetHover(null)}
-          className={`cursor-pointer absolute ${hover === "banner" ? "opacity-100  bg-brand/40" : "opacity-0"} w-full h-full mt-[25px] transition-opacity duration-300 flex items-center justify-center`}
+          onClick={() => document.getElementById("bannerImg")?.click()}
+          className={`cursor-pointer  absolute inset-0 ${hover === "banner" ? "opacity-100 bg-brand/40" : "opacity-0"} transition-opacity duration-300 flex items-center justify-center`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -363,15 +432,20 @@ export default function EditarNegocioPage() {
         </div>
       </div>
       <div className="relative max-w-[820px] px-2 w-full mx-auto ">
-        {negocio?.image_url ? (
+        {negocio?.image_url || profilePreview?.objectUrl ? (
           <>
             <div
               onMouseEnter={() => SetHover("profile")}
               onMouseLeave={() => SetHover(null)}
+              onClick={() => document.getElementById("perfilImg").click()}
               className="absolute -top-30 left-5 w-25 h-25 border-2 border-white rounded-xl overflow-hidden cursor-pointer"
             >
               <Image
-                src={negocio.image_url}
+                src={
+                  profilePreview?.objectUrl
+                    ? profilePreview.objectUrl
+                    : negocio.image_url
+                }
                 alt={negocio.nombre || "Sin nombre"}
                 width={300}
                 height={128}
@@ -420,7 +494,20 @@ export default function EditarNegocioPage() {
             {mensaje.exito}
           </p>
         )}
-
+        <input
+          type="file"
+          id="perfilImg"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => handleFileChange(e, "perfil")}
+        />
+        <input
+          type="file"
+          id="bannerImg"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => handleFileChange(e, "banner")}
+        />
         <h2 className="text-lg font-display font-[700] mt-6">
           Información básica
         </h2>
