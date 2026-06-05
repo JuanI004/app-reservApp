@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { supabase } from "../../../lib/supabase";
+import EscribirResenia from "../../ui/EscribirResenia";
 
 const reseñas = [
   {
@@ -62,6 +63,19 @@ export default function NegocioUserPage({ negocio, session }) {
         setCargando(false);
       }
     };
+    const fetchReseñas = async () => {
+      const { data, error } = await supabase
+        .from("Reseñas")
+        .select("*")
+        .eq("idNegocio", negocio?.idNegocio)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      if (error) {
+        console.error("Error trayendo reseñas:", error.message);
+      } else {
+        setNegocioInfo((prev) => ({ ...prev, reseñas: data }));
+      }
+    };
     const fetchOwner = async () => {
       if (!negocio?.idDueño) return;
 
@@ -79,6 +93,7 @@ export default function NegocioUserPage({ negocio, session }) {
     };
     fetchEmpleados();
     fetchOwner();
+    fetchReseñas();
   }, [negocio?.idNegocio, negocio?.idDueño]);
 
   useEffect(() => {
@@ -125,6 +140,21 @@ export default function NegocioUserPage({ negocio, session }) {
     fetchNombreCliente();
     fetchTurnos();
   }, [formData.fechaDate, formData.idEmpleado, negocio?.idNegocio]);
+
+  function formatearFechaReseña(fechaStr) {
+    if (!fechaStr) return "";
+    let s = String(fechaStr).trim();
+    s = s.replace(" ", "T");
+    s = s.replace(/\+00(:00)?$/, "Z");
+    s = s.replace(/\.(\d{3})\d+/, ".$1");
+    let fecha = new Date(s);
+    if (isNaN(fecha)) {
+      const fallback = String(fechaStr).split(".")[0].replace(" ", "T");
+      fecha = new Date(fallback);
+    }
+
+    return isNaN(fecha) ? "" : fecha.toLocaleDateString();
+  }
 
   const calcularFin = (horaInicio, duracionMin) => {
     const [h, m] = horaInicio.split(":").map(Number);
@@ -270,7 +300,6 @@ export default function NegocioUserPage({ negocio, session }) {
       value: "~10 min",
     },
   ];
-  console.log(negocioInfo);
 
   const getWeekDates = (offsetWeeks = 0) => {
     const now = new Date();
@@ -438,25 +467,53 @@ export default function NegocioUserPage({ negocio, session }) {
             </div>
             <div className="bg-white p-4  border border-gray-200 rounded-xl">
               <h2 className="font-display font-[700]">Reseñas</h2>
-              <div className="mt-4 flex flex-col gap-4">
-                {reseñas.map((reseña) => (
-                  <div
-                    key={reseña.id}
-                    className="border border-gray-200 rounded-xl p-4"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="w-8 h-8 rounded-full bg-[#d1d1d1] flex items-center justify-center text-gray-700 font-medium">
-                        {reseña.nombre.charAt(0)}
-                      </span>
-                      <div>
-                        <p className="text-sm font-medium">{reseña.nombre}</p>
-                        <p className="text-xs text-gray-500">{reseña.tiempo}</p>
-                      </div>
-                    </div>
-                    <p className="text-sm mt-2">{reseña.texto}</p>
-                  </div>
-                ))}
+              <div className="border border-gray-200 rounded-xl p-4">
+                <EscribirResenia
+                  negocioId={negocio?.idNegocio}
+                  usuarioInfo={session?.user}
+                />
               </div>
+              {negocioInfo?.reseñas ? (
+                <div className="mt-4 flex flex-col gap-4">
+                  {negocioInfo?.reseñas?.map((reseña) => (
+                    <div
+                      key={reseña.id}
+                      className="border border-gray-200 rounded-xl p-4"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="w-8 h-8 rounded-full bg-[#d1d1d1] flex items-center justify-center text-gray-700 font-medium">
+                          {reseña.nombreCliente?.charAt(0)}
+                        </span>
+                        <div>
+                          <p className="text-sm font-medium">
+                            {reseña.nombreCliente}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center">
+                              {[1, 2, 3, 4, 5].map((i) => (
+                                <span
+                                  key={i}
+                                  className={`text-sm ${i <= (Number(reseña.rating) || 0) ? "text-brand" : "text-gray-300"}`}
+                                >
+                                  ★
+                                </span>
+                              ))}
+                            </div>
+                            <p className="text-xs text-gray-500">
+                              {formatearFechaReseña(reseña.created_at)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm mt-2">{reseña.comentario}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">
+                  Aún no hay reseñas para este negocio.
+                </p>
+              )}
             </div>
           </section>
           <section>
@@ -589,7 +646,7 @@ export default function NegocioUserPage({ negocio, session }) {
                       className={appliedClasses}
                       onClick={() => {
                         setSelectedDia(diaNumero);
-                        console.log(formData);
+
                         setFormData((prev) => ({
                           ...prev,
                           diaParseada:
