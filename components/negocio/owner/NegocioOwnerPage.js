@@ -58,6 +58,21 @@ export default function NegocioOwnerPage({ negocio, session }) {
     if (!negocio) {
       return;
     }
+    setLoading(true);
+
+    const fetchTurnos = async () => {
+      const { data, error } = await supabase
+        .from("Turnos")
+        .select("*")
+        .eq("idNegocio", negocio?.idNegocio);
+
+      if (error) {
+        console.error("Error trayendo turnos:", error.message);
+      } else {
+        setTurnos(data);
+      }
+    };
+
     const fetchPersonalTurnos = async () => {
       const { data: empleados, error: errorEmpleados } = await supabase
         .from("Empleados")
@@ -102,12 +117,26 @@ export default function NegocioOwnerPage({ negocio, session }) {
       setPersonalTurnos(personalMapeado);
     };
 
-    fetchPersonalTurnos();
-    fetchTurnos();
-    setLoading(false);
+    const loadData = async () => {
+      try {
+        await Promise.all([fetchPersonalTurnos(), fetchTurnos()]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, [negocio, negocio?.idDueño]);
 
-  if (loading) return <div className="p-10 mt-20">Cargando...</div>;
+  if (loading)
+    return (
+      <div className="min-h-screen w-full bg-background flex items-center justify-center px-6">
+        <div className="flex flex-col items-center gap-4 rounded-2xl bg-white/80 px-8 py-10 shadow-sm border border-gray-100">
+          <div className="h-14 w-14 rounded-full border-4 border-brand/20 border-t-brand animate-spin" />
+          <p className="text-sm font-medium text-gray-500">Cargando negocio...</p>
+        </div>
+      </div>
+    );
   if (error) return <div className="p-10 text-red-500">{error}</div>;
 
   return (
@@ -116,13 +145,13 @@ export default function NegocioOwnerPage({ negocio, session }) {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="absolute right-0 bg-white h-screen overflow-scroll w-full max-w-sm">
             <div className="flex justify-between border-b border-gray-300 items-center p-6">
-              <h2 className="text-xl font-display font-[700]">
+              <h2 className="text-xl font-display font-bold">
                 {modalIsOpen.modo === "empleado" && "Agregar Empleado"}
                 {modalIsOpen.modo === "servicio" && "Agregar Servicio"}
                 {modalIsOpen.modo === "horarios" && "Editar Horarios"}
               </h2>
               <button
-                className="text-gray-700 h-[35px] px-2 cursor-pointer rounded-xl border border-gray-300 hover:bg-gray-200 transition"
+                className="text-gray-700 h-9 px-2 cursor-pointer rounded-xl border border-gray-300 hover:bg-gray-200 transition"
                 onClick={() => setModalIsOpen({ activo: false, modo: null })}
               >
                 <svg

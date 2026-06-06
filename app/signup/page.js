@@ -124,7 +124,7 @@ const Auth = () => {
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  className={`py-2 px-4 rounded-lg border cursor-pointer ${
+                  className={`py-2 px-4 rounded-xl border cursor-pointer ${
                     formData.rol === "user"
                       ? "bg-brand text-white border-brand"
                       : "bg-background text-black border-gray-300"
@@ -138,7 +138,7 @@ const Auth = () => {
                 </button>
                 <button
                   type="button"
-                  className={`py-2 px-4 rounded-lg border cursor-pointer ${
+                  className={`py-2 px-4 rounded-xl border cursor-pointer ${
                     formData.rol === "owner"
                       ? "bg-brand text-white border-brand"
                       : "bg-background text-black border-gray-300"

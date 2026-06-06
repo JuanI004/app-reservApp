@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 export default function NegociosOwner({ negocios, handleDeleteNegocio }) {
@@ -14,13 +15,22 @@ export default function NegociosOwner({ negocios, handleDeleteNegocio }) {
       {negocios.map((negocio, idx) => (
         <>
           <article className="bg-white  rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-            <div className={`px-4 py-8 flex items-center bg-black `}>
+            <div className={`relative flex items-center `}>
+              <Image
+                src={negocio.banner_url}
+                width={400}
+                height={200}
+                alt={negocio.nombre}
+                className="w-full h-40 object-cover"
+              />
               <div className="flex-shrink-0 ">
                 {negocio.image_url ? (
-                  <img
+                  <Image
                     src={negocio.image_url}
+                    width={80}
+                    height={80}
                     alt={negocio.nombre}
-                    className="w-20 h-20 object-cover rounded-xl border-4 border-white shadow-sm"
+                    className="absolute left-5 top-23 w-20 h-20 object-cover rounded-xl border-4 border-white shadow-sm"
                   />
                 ) : (
                   <div className="w-20 h-20 rounded-xl bg-white border-4 border-white shadow-sm flex items-center justify-center text-xl font-bold text-gray-600">

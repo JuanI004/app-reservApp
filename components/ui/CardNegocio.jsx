@@ -3,7 +3,20 @@ import Image from "next/image";
 export default function CardNegocio({ negocio }) {
   return (
     <div className="relative bg-white cursor-pointer h-full w-full rounded-xl ">
-      <div className="w-full h-32 bg-black relative rounded-t-xl ">
+      <div className="w-full h-32 relative rounded-t-xl ">
+        {negocio.banner_url ? (
+          <Image
+            src={negocio.banner_url}
+            alt={negocio.nombre || "Sin nombre"}
+            width={400}
+            height={200}
+            className="w-full h-full object-cover rounded-t-xl"
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-200 rounded-t-xl flex items-center justify-center">
+            <p className="text-gray-500">Banner no disponible</p>
+          </div>
+        )}
         {negocio.image_url ? (
           <Image
             src={negocio.image_url}
