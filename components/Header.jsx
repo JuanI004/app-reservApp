@@ -169,7 +169,7 @@ export default function Header() {
 
                     <nav className="flex flex-col gap-1">
                       <Link
-                        href="/profile"
+                        href="/perfil"
                         className="flex items-center gap-3 px-2 py-2 rounded-md hover:bg-gray-50 text-gray-700"
                       >
                         <svg

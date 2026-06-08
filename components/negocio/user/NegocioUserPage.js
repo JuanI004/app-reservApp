@@ -340,7 +340,22 @@ export default function NegocioUserPage({ negocio, session }) {
 
   return (
     <>
-      <span className="w-screen h-70 bg-black"></span>
+      {negocio?.banner_url ? (
+        <Image
+          src={negocio.banner_url}
+          alt={negocio.nombre || "Sin nombre"}
+          width={820}
+          height={70}
+          className="w-screen h-70 object-cover"
+        />
+      ) : (
+        <span className="w-screen h-70 bg-gray-200">
+          <p className="text-gray-500 text-center pt-20">
+            Banner no disponible
+          </p>
+        </span>
+      )}
+
       <div className="relative max-w-[820px] w-full mx-auto ">
         {negocio?.image_url ? (
           <Image
