@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import PerfilCliente from "../../components/perfil/cliente/PerfilCliente";
+import PerfilDueno from "../../components/perfil/owner/PerfilDueno";
 
 export default function PerfilPage() {
   const [session, setSession] = useState(null);
@@ -23,6 +24,9 @@ export default function PerfilPage() {
     <>
       {session?.user_metadata?.rol === "user" && (
         <PerfilCliente session={session} />
+      )}
+      {session?.user_metadata?.rol === "owner" && (
+        <PerfilDueno session={session} />
       )}
     </>
   );
