@@ -12,9 +12,11 @@ export default function NegociosOwner({ negocios, handleDeleteNegocio }) {
 
   return (
     <div className="grid gap-6 mt-6 grid-cols-1 md:grid-cols-2">
-      {negocios.map((negocio, idx) => (
-        <>
-          <article className="bg-white  rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+      {negocios.map((negocio) => (
+        <article
+          key={negocio.idNegocio}
+          className="bg-white  rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+        >
             <div className={`relative flex items-center `}>
               <Image
                 src={negocio.banner_url}
@@ -116,7 +118,6 @@ export default function NegociosOwner({ negocios, handleDeleteNegocio }) {
               </div>
             </div>
           </article>
-        </>
       ))}
     </div>
   );

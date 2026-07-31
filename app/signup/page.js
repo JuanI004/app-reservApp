@@ -71,7 +71,7 @@ const Auth = () => {
           phone: formData.phone,
           rol: formData.rol,
         },
-        emailRedirectTo: "http://localhost:3000/auth/verificacion",
+        emailRedirectTo: `${window.location.origin}/auth/verificacion`,
       },
     });
 

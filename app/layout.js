@@ -2,6 +2,7 @@ import { Geist, Geist_Mono, Syne, DM_Sans } from "next/font/google";
 import "./globals.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { CrearNegocioModalProvider } from "../components/crearNegocio/CrearNegocioModalProvider";
 
 
 const geistSans = Geist({
@@ -38,9 +39,11 @@ export default function RootLayout({ children }) {
       className={`${geistSans.variable} ${geistMono.variable} ${syne.variable} ${dmSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[#f9f7f4]">
-        <Header />
-        {children}
-        <Footer />
+        <CrearNegocioModalProvider>
+          <Header />
+          {children}
+          <Footer />
+        </CrearNegocioModalProvider>
       </body>
     </html>
   );

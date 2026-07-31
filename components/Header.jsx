@@ -5,10 +5,12 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useCrearNegocioModal } from "./crearNegocio/CrearNegocioModalProvider";
 
 export default function Header() {
   const [session, setSession] = useState(null);
   const router = useRouter();
+  const { abrirCrearNegocio } = useCrearNegocioModal();
   const [role, setRole] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
   const [displayMenu, setDisplayMenu] = useState(false);
@@ -87,6 +89,7 @@ export default function Header() {
               {role === "owner" && (
                 <>
                   <button
+                    onClick={abrirCrearNegocio}
                     className={`${headerBtn} px-4 bg-white text-brand hover:bg-background-light`}
                   >
                     + Nuevo negocio
@@ -184,37 +187,6 @@ export default function Header() {
                         Mi perfil
                       </Link>
 
-                      <Link
-                        href="/settings"
-                        className="flex items-center gap-3 px-2 py-2 rounded-md hover:bg-gray-50 text-gray-700"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          fill="#000000"
-                          viewBox="0 0 256 256"
-                        >
-                          <path d="M223.68,66.15,135.68,18a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.64a16,16,0,0,0,8.32,14l88,48.17a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,168a40,40,0,1,1,40-40A40,40,0,0,1,128,168Z"></path>
-                        </svg>
-                        Configuración
-                      </Link>
-
-                      <Link
-                        href="/help"
-                        className="flex items-center gap-3 px-2 py-2 rounded-md hover:bg-gray-50 text-gray-700"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          fill="#000000"
-                          viewBox="0 0 256 256"
-                        >
-                          <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm-4,48a12,12,0,1,1-12,12A12,12,0,0,1,124,72Zm12,112a16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40a8,8,0,0,1,0,16Z"></path>
-                        </svg>
-                        Ayuda
-                      </Link>
                     </nav>
 
                     <div className="my-2 border-t border-gray-100" />
