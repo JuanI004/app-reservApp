@@ -13,6 +13,7 @@ export default function Header() {
   const { abrirCrearNegocio } = useCrearNegocioModal();
   const [role, setRole] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
+  const [negociosEmpleo, setNegociosEmpleo] = useState([]);
   const [displayMenu, setDisplayMenu] = useState(false);
 
   const headerBtn =
@@ -45,19 +46,8 @@ export default function Header() {
     if (!session || !role) return;
 
     const fetchDatosUsuario = async () => {
-      const tableName =
-        role === "owner"
-          ? "Duenos"
-          : role === "empleado"
-            ? "Empleados"
-            : "Clientes";
-
-      const idName =
-        role === "owner"
-          ? "idDueño"
-          : role === "empleado"
-            ? "idEmpleado"
-            : "idCliente";
+      const tableName = role === "owner" ? "Duenos" : "Clientes";
+      const idName = role === "owner" ? "idDueño" : "idCliente";
 
       const { data, error } = await supabase
         .from(tableName)
@@ -74,6 +64,55 @@ export default function Header() {
 
     fetchDatosUsuario();
   }, [session, role]);
+
+  useEffect(() => {
+    if (!session || role !== "user") {
+      setNegociosEmpleo([]);
+      return;
+    }
+
+    const fetchNegociosEmpleo = async () => {
+      const { data: empleos, error: errorEmpleos } = await supabase
+        .from("Empleados")
+        .select("idNegocio")
+        .eq("idEmpleado", session.user.id)
+        .eq("activo", true);
+
+      if (errorEmpleos || !empleos || empleos.length === 0) {
+        if (errorEmpleos) {
+          console.error("Error trayendo empleos:", errorEmpleos.message);
+        }
+        setNegociosEmpleo([]);
+        return;
+      }
+
+      const idsNegocios = empleos.map((e) => e.idNegocio);
+      const { data: negocios, error: errorNegocios } = await supabase
+        .from("Negocios")
+        .select("idNegocio, nombre")
+        .in("idNegocio", idsNegocios);
+
+      if (errorNegocios) {
+        console.error(
+          "Error trayendo negocios donde trabajo:",
+          errorNegocios.message,
+        );
+        setNegociosEmpleo([]);
+      } else {
+        setNegociosEmpleo(negocios ?? []);
+      }
+    };
+
+    fetchNegociosEmpleo();
+  }, [session, role]);
+
+  const esEmpleado = role === "user" && negociosEmpleo.length > 0;
+  const negociosEmpleoTexto =
+    negociosEmpleo.length === 1
+      ? negociosEmpleo[0].nombre
+      : negociosEmpleo.length > 1
+        ? `${negociosEmpleo[0].nombre} y ${negociosEmpleo.length - 1} más`
+        : "";
   return (
     <header className="fixed w-full max-w-screen bg-brand text-white px-4 py-3 z-20">
       <div className="flex justify-between items-center max-w-[1160px] mx-auto">
@@ -161,8 +200,8 @@ export default function Header() {
                         <div className="text-xs text-gray-500">
                           {role === "owner"
                             ? "Dueño"
-                            : role === "empleado"
-                              ? "Empleado"
+                            : esEmpleado
+                              ? `Empleado en ${negociosEmpleoTexto}`
                               : "Cliente"}
                         </div>
                       </div>
