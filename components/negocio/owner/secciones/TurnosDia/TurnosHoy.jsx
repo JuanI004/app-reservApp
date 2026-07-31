@@ -82,6 +82,29 @@ export default function PanelNegocio({
     }
   }
 
+  async function handleCompletarTurno(idTurno) {
+    const prev = [...turnosState];
+    setTurnosState((prevState) =>
+      prevState.map((t) =>
+        t.idTurno === idTurno ? { ...t, estado: "completado" } : t,
+      ),
+    );
+
+    const { data, error } = await supabase
+      .from("Turnos")
+      .update({ estado: "completado" })
+      .eq("idTurno", idTurno)
+      .select();
+
+    if (error || !data || data.length === 0) {
+      console.error(
+        "Error completando turno:",
+        error?.message || "sin filas afectadas (posible bloqueo de RLS)",
+      );
+      setTurnosState(prev);
+    }
+  }
+
   function getTurnosCantEmpleadoHoy(idEmpleado) {
     const hoy = new Date();
     const turnosHoy = turnos.filter((turno) => {
@@ -236,6 +259,7 @@ export default function PanelNegocio({
           personalTurnos={personalTurnos}
           handleConfirmar={handleConfirmarTurno}
           handleCancelar={handleCancelarTurno}
+          handleCompletar={handleCompletarTurno}
         />
         <section className="md:w-2/3 flex flex-col gap-5">
           <div className="bg-white rounded-xl ">

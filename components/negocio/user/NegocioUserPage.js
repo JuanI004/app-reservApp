@@ -540,7 +540,7 @@ export default function NegocioUserPage({ negocio, session }) {
               <div className="flex flex-col w-full gap-4">
                 {(negocio?.servicios ?? []).map((servicio) => (
                   <button
-                    key={servicio.id}
+                    key={servicio.id || servicio.nombre}
                     onClick={() =>
                       setFormData((prev) => ({
                         ...prev,
@@ -592,15 +592,15 @@ export default function NegocioUserPage({ negocio, session }) {
                 </button>
                 {negocioInfo?.empleados?.map((miembro, index) => (
                   <button
-                    key={index}
+                    key={miembro.idEmpleado ?? index}
                     onClick={() =>
                       setFormData((prev) => ({
                         ...prev,
-                        idEmpleado: miembro.id,
+                        idEmpleado: miembro.idEmpleado,
                         profesional: miembro.nombre,
                       }))
                     }
-                    className={`w-full flex flex-col  cursor-pointer justify-center items-center text-sm text-center px-4 py-2 ${formData.idEmpleado === miembro.id ? " bg-brand/10 border-brand" : "bg-background border-gray-300"} border  rounded-xl hover:bg-brand/10 hover:border-brand transition-colors`}
+                    className={`w-full flex flex-col  cursor-pointer justify-center items-center text-sm text-center px-4 py-2 ${formData.idEmpleado === miembro.idEmpleado ? " bg-brand/10 border-brand" : "bg-background border-gray-300"} border  rounded-xl hover:bg-brand/10 hover:border-brand transition-colors`}
                   >
                     {miembro.image_url ? (
                       <Image

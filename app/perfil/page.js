@@ -22,6 +22,9 @@ export default function PerfilPage() {
 
   return (
     <>
+      {/* PerfilCliente asume que un dueño nunca entra por acá (por eso el
+          panel de "Mis turnos como empleado" no filtra turnos con
+          idEmpleado = idDueño): si este gating cambia, revisar ese supuesto. */}
       {session?.user_metadata?.rol === "user" && (
         <PerfilCliente session={session} />
       )}

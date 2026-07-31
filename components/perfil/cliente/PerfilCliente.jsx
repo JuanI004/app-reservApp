@@ -2,6 +2,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabase";
 import MisTurnosCliente from "./MisTurnosCliente";
+import MisTurnosEmpleado from "./MisTurnosEmpleado";
 import MisReseñasCliente from "./MIsReseñasCliente";
 import { useRouter } from "next/navigation";
 import EditarPerfil from "./EditarPerfil";
@@ -68,6 +69,9 @@ export default function PerfilCliente({ session }) {
   const [personalTurnos, setPersonalTurnos] = useState({});
   const [negociosTurnos, setNegociosTurnos] = useState({});
   const [misReseñas, setMisReseñas] = useState([]);
+  const [misTurnosEmpleado, setMisTurnosEmpleado] = useState([]);
+  const [negociosEmpleoTurnos, setNegociosEmpleoTurnos] = useState({});
+  const [tieneEmpleos, setTieneEmpleos] = useState(false);
   const [modalEditar, setModalEditar] = useState(false);
   const router = useRouter();
 
@@ -266,10 +270,91 @@ export default function PerfilCliente({ session }) {
       }
     }
 
+    async function fetchMisTurnosEmpleado() {
+      if (!session) return;
+
+      const { data: empleos, error: errorEmpleos } = await supabase
+        .from("Empleados")
+        .select("idNegocio")
+        .eq("idEmpleado", session.id)
+        .eq("activo", true);
+
+      if (errorEmpleos) {
+        console.error("Error fetching empleos:", errorEmpleos);
+        return;
+      }
+
+      if (!empleos || empleos.length === 0) {
+        setTieneEmpleos(false);
+        setMisTurnosEmpleado([]);
+        setNegociosEmpleoTurnos({});
+        return;
+      }
+
+      setTieneEmpleos(true);
+      const idsNegociosEmpleo = empleos.map((e) => e.idNegocio);
+
+      const [{ data: turnosEmpleado, error: errorTurnos }, { data: negocios, error: errorNegocios }] =
+        await Promise.all([
+          supabase.from("Turnos").select("*").eq("idEmpleado", session.id),
+          supabase
+            .from("Negocios")
+            .select("idNegocio, nombre, image_url")
+            .in("idNegocio", idsNegociosEmpleo),
+        ]);
+
+      if (errorTurnos) {
+        console.error("Error fetching turnos como empleado:", errorTurnos);
+      } else {
+        setMisTurnosEmpleado(turnosEmpleado ?? []);
+      }
+
+      if (errorNegocios) {
+        console.error(
+          "Error fetching negocios donde trabajo:",
+          errorNegocios,
+        );
+      } else {
+        const mapa = (negocios ?? []).reduce((acc, negocio) => {
+          acc[negocio.idNegocio] = {
+            nombre: negocio.nombre || "Negocio desconocido",
+            image_url: negocio.image_url,
+          };
+          return acc;
+        }, {});
+        setNegociosEmpleoTurnos(mapa);
+      }
+    }
+
     fetchUserInfo();
     fetchMisTurnos();
     fetchMisReseñas();
+    fetchMisTurnosEmpleado();
   }, [session]);
+
+  async function handleMarcarCompletadoEmpleado(idTurno) {
+    const prev = misTurnosEmpleado;
+    setMisTurnosEmpleado((prevState) =>
+      prevState.map((t) =>
+        t.idTurno === idTurno ? { ...t, estado: "completado" } : t,
+      ),
+    );
+
+    const { data, error } = await supabase
+      .from("Turnos")
+      .update({ estado: "completado" })
+      .eq("idTurno", idTurno)
+      .eq("idEmpleado", session.id)
+      .select();
+
+    if (error || !data || data.length === 0) {
+      console.error(
+        "Error marcando turno como completado:",
+        error?.message || "sin filas afectadas (posible bloqueo de RLS)",
+      );
+      setMisTurnosEmpleado(prev);
+    }
+  }
 
   async function handleEliminarPerfil() {
     if (!session) return;
@@ -453,6 +538,13 @@ export default function PerfilCliente({ session }) {
               personalTurnos={personalTurnos}
               negociosTurnos={negociosTurnos}
             />
+            {tieneEmpleos && (
+              <MisTurnosEmpleado
+                turnos={misTurnosEmpleado}
+                negociosTurnos={negociosEmpleoTurnos}
+                onMarcarCompletado={handleMarcarCompletadoEmpleado}
+              />
+            )}
             <MisReseñasCliente reseñas={misReseñas} />
           </section>
 

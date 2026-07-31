@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { useMemo, useState } from "react";
 import {
   MONTHS_SHORT_ES,
@@ -6,10 +5,10 @@ import {
   getEstadoBadgeClass,
 } from "../../../lib/turnos";
 
-export default function MisTurnosCliente({
+export default function MisTurnosEmpleado({
   turnos = [],
-  personalTurnos = {},
   negociosTurnos = {},
+  onMarcarCompletado,
 }) {
   const [filtro, setFiltro] = useState("Todos");
 
@@ -37,10 +36,7 @@ export default function MisTurnosCliente({
   };
 
   const tabs = [
-    {
-      label: "Todos",
-      cantidad: turnosOrdenados.length,
-    },
+    { label: "Todos", cantidad: turnosOrdenados.length },
     {
       label: "Proximos",
       cantidad: turnosOrdenados.filter(filtros.Proximos).length,
@@ -62,7 +58,7 @@ export default function MisTurnosCliente({
   return (
     <section className="bg-white rounded-xl w-full overflow-hidden">
       <h2 className="flex items-center text-lg font-display font-bold text-gray-900 px-6 py-4 border-b border-gray-200">
-        Mis turnos
+        Mis turnos como empleado
       </h2>
       <div className="bg-background px-6 py-3 border-b border-gray-200 overflow-x-auto">
         <div className="flex items-center gap-2 min-w-max">
@@ -104,7 +100,9 @@ export default function MisTurnosCliente({
 
             const negocioNombre =
               negociosTurnos[turno.idNegocio]?.nombre || "Negocio desconocido";
-            const empleado = personalTurnos[turno.idEmpleado];
+            const clienteNombre = turno.nombreCliente || "Cliente desconocido";
+            const puedeCompletar =
+              turno.estado === "confirmado" && fechaTurno <= ahora;
 
             return (
               <article
@@ -135,34 +133,43 @@ export default function MisTurnosCliente({
                       </span>
                       <span className="text-gray-300">•</span>
                       <div className="flex items-center gap-1 min-w-0">
-                        {empleado?.image_url ? (
-                          <Image
-                            src={empleado.image_url}
-                            alt={empleado.nombre || "Empleado"}
-                            width={20}
-                            height={20}
-                            className="w-5 h-5 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-5 h-5 rounded-full bg-brand text-white text-[10px] font-bold flex items-center justify-center">
-                            {empleado?.nombre?.charAt(0)?.toUpperCase() || "?"}
-                          </div>
-                        )}
+                        <div className="w-5 h-5 rounded-full bg-brand text-white text-[10px] font-bold flex items-center justify-center">
+                          {clienteNombre?.charAt(0)?.toUpperCase() || "?"}
+                        </div>
                         <span className="truncate text-xs">
-                          {empleado?.nombre || "Empleado desconocido"}
+                          {clienteNombre}
                         </span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <span
-                  className={`shrink-0 capitalize px-3 py-1 rounded-full border text-xs font-medium ${getEstadoBadgeClass(
-                    turno.estado,
-                  )}`}
-                >
-                  {turno.estado || "sin estado"}
-                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span
+                    className={`capitalize px-3 py-1 rounded-full border text-xs font-medium ${getEstadoBadgeClass(
+                      turno.estado,
+                    )}`}
+                  >
+                    {turno.estado || "sin estado"}
+                  </span>
+                  {puedeCompletar && (
+                    <button
+                      onClick={() => onMarcarCompletado?.(turno.idTurno)}
+                      title="Marcar como completado"
+                      className="p-2 cursor-pointer border border-gray-300 rounded-full hover:bg-blue-100 hover:border-blue-400 hover:text-blue-700 transition-colors"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="15"
+                        height="15"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                      >
+                        <path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"></path>
+                      </svg>
+                    </button>
+                  )}
+                </div>
               </article>
             );
           })
