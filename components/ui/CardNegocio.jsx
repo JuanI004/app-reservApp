@@ -1,8 +1,16 @@
 import Image from "next/image";
+import BotonFavorito from "./BotonFavorito";
 
-export default function CardNegocio({ negocio }) {
+export default function CardNegocio({ negocio, esFavorito, onToggleFavorito }) {
   return (
     <div className="relative bg-white cursor-pointer h-full w-full rounded-xl ">
+      {onToggleFavorito && (
+        <BotonFavorito
+          esFavorito={esFavorito}
+          onToggle={onToggleFavorito}
+          className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-white/90 text-red-500 hover:bg-white shadow-sm"
+        />
+      )}
       <div className="w-full h-32 relative rounded-t-xl ">
         {negocio.banner_url ? (
           <Image

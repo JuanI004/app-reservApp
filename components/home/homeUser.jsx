@@ -24,6 +24,8 @@ export default function HomeUser() {
     orden: "mejorPuntaje",
     busqueda: "",
   });
+  const [userId, setUserId] = useState(null);
+  const [favoritosSet, setFavoritosSet] = useState(new Set());
   const router = useRouter();
 
   useEffect(() => {
@@ -48,6 +50,23 @@ export default function HomeUser() {
         if (!active) return;
 
         setNegocios(negociosData || []);
+        setUserId(authData?.user?.id || null);
+
+        if (authData?.user?.id) {
+          const { data: favoritosData, error: favoritosError } =
+            await supabase
+              .from("Favoritos")
+              .select("idNegocio")
+              .eq("idCliente", authData.user.id);
+
+          if (favoritosError) {
+            console.error("Error trayendo favoritos:", favoritosError.message);
+          } else if (active) {
+            setFavoritosSet(
+              new Set((favoritosData ?? []).map((f) => f.idNegocio)),
+            );
+          }
+        }
       } catch (e) {
         if (!active) return;
         setError(e?.message || "No se pudieron cargar los datos.");
@@ -61,6 +80,38 @@ export default function HomeUser() {
       active = false;
     };
   }, []);
+
+  async function handleToggleFavorito(idNegocio) {
+    if (!userId) return;
+
+    const yaEsFavorito = favoritosSet.has(idNegocio);
+    const prev = new Set(favoritosSet);
+
+    setFavoritosSet((prevSet) => {
+      const nuevo = new Set(prevSet);
+      if (yaEsFavorito) {
+        nuevo.delete(idNegocio);
+      } else {
+        nuevo.add(idNegocio);
+      }
+      return nuevo;
+    });
+
+    const { error } = yaEsFavorito
+      ? await supabase
+          .from("Favoritos")
+          .delete()
+          .eq("idCliente", userId)
+          .eq("idNegocio", idNegocio)
+      : await supabase
+          .from("Favoritos")
+          .insert({ idCliente: userId, idNegocio });
+
+    if (error) {
+      console.error("Error actualizando favorito:", error.message);
+      setFavoritosSet(prev);
+    }
+  }
 
   function aplicarFiltros(negocios) {
     let filtrados = [...negocios];
@@ -209,11 +260,17 @@ export default function HomeUser() {
         <ul className="space-y-3 grid sm:grid-cols-2 md:grid-cols-3  gap-4">
           {negociosFiltrados.map((negocio) => (
             <li
-              key={negocio.id}
+              key={negocio.idNegocio}
               onClick={() => router.push(`/negocio/${negocio.idNegocio}`)}
               className="h-full hover:shadow-lg hover:scale-105 transition-all rounded-xl"
             >
-              <CardNegocio negocio={negocio} />
+              <CardNegocio
+                negocio={negocio}
+                esFavorito={favoritosSet.has(negocio.idNegocio)}
+                onToggleFavorito={
+                  userId ? () => handleToggleFavorito(negocio.idNegocio) : undefined
+                }
+              />
             </li>
           ))}
         </ul>

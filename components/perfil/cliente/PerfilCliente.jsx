@@ -7,27 +7,6 @@ import MisReseñasCliente from "./MIsReseñasCliente";
 import { useRouter } from "next/navigation";
 import EditarPerfil from "./EditarPerfil";
 
-const FavoritosPlaceholder = [
-  {
-    id: 1,
-    nombre: "Estudio B",
-    categoria: "Peluquería",
-    direccion: "25 de agosto, Montevideo — Centro",
-  },
-  {
-    id: 2,
-    nombre: "Zen Spa",
-    categoria: "Masajes",
-    direccion: "Av. Italia, Montevideo — Pocitos",
-  },
-  {
-    id: 3,
-    nombre: "Nails by Caro",
-    categoria: "Manicura",
-    direccion: "Bulevar Artigas, Montevideo — Tres Cruces",
-  },
-];
-
 const NotificacionesPlaceholder = [
   {
     id: 1,
@@ -72,6 +51,7 @@ export default function PerfilCliente({ session }) {
   const [misTurnosEmpleado, setMisTurnosEmpleado] = useState([]);
   const [negociosEmpleoTurnos, setNegociosEmpleoTurnos] = useState({});
   const [tieneEmpleos, setTieneEmpleos] = useState(false);
+  const [misFavoritos, setMisFavoritos] = useState([]);
   const [modalEditar, setModalEditar] = useState(false);
   const router = useRouter();
 
@@ -326,11 +306,64 @@ export default function PerfilCliente({ session }) {
       }
     }
 
+    async function fetchMisFavoritos() {
+      if (!session) return;
+
+      const { data: favoritos, error: errorFavoritos } = await supabase
+        .from("Favoritos")
+        .select("idNegocio")
+        .eq("idCliente", session.id);
+
+      if (errorFavoritos) {
+        console.error("Error fetching favoritos:", errorFavoritos.message);
+        return;
+      }
+
+      const idsNegociosFavoritos = (favoritos ?? []).map((f) => f.idNegocio);
+      if (idsNegociosFavoritos.length === 0) {
+        setMisFavoritos([]);
+        return;
+      }
+
+      const { data: negocios, error: errorNegocios } = await supabase
+        .from("Negocios")
+        .select("idNegocio, nombre, categoria, direccion, image_url")
+        .in("idNegocio", idsNegociosFavoritos);
+
+      if (errorNegocios) {
+        console.error(
+          "Error fetching negocios favoritos:",
+          errorNegocios.message,
+        );
+      } else {
+        setMisFavoritos(negocios ?? []);
+      }
+    }
+
     fetchUserInfo();
     fetchMisTurnos();
     fetchMisReseñas();
     fetchMisTurnosEmpleado();
+    fetchMisFavoritos();
   }, [session]);
+
+  async function handleQuitarFavorito(idNegocio) {
+    const prev = misFavoritos;
+    setMisFavoritos((prevState) =>
+      prevState.filter((n) => n.idNegocio !== idNegocio),
+    );
+
+    const { error } = await supabase
+      .from("Favoritos")
+      .delete()
+      .eq("idCliente", session.id)
+      .eq("idNegocio", idNegocio);
+
+    if (error) {
+      console.error("Error quitando favorito:", error.message);
+      setMisFavoritos(prev);
+    }
+  }
 
   async function handleMarcarCompletadoEmpleado(idTurno) {
     const prev = misTurnosEmpleado;
@@ -571,36 +604,67 @@ export default function PerfilCliente({ session }) {
             <div className="bg-white rounded-xl ">
               <div className="flex pt-5 pb-4 px-6 justify-between border-b border-gray-200 items-center ">
                 <h2 className="text-lg font-display font-bold ">Favoritos</h2>
-                <p className="text-gray-500 text-sm cursor-pointer">
-                  {FavoritosPlaceholder.length} guardados
+                <p className="text-gray-500 text-sm">
+                  {misFavoritos.length} guardados
                 </p>
               </div>
-              {FavoritosPlaceholder.map((fav) => (
-                <div
-                  key={fav.id}
-                  onClick={() => router.push(`/negocio/${fav.id}`)}
-                  className="px-6 hover:bg-background cursor-pointer  py-4 border-b flex items-center gap-3 border-gray-200"
-                >
-                  {fav.image_url ? (
-                    <Image
-                      src={fav.image_url}
-                      alt={fav.nombre}
-                      width={40}
-                      height={40}
-                      className="w-10 h-10 rounded-lg"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-lg bg-gray-300 flex items-center justify-center text-sm font-semibold text-gray-600">
-                      {fav.nombre.charAt(0)}
+              {misFavoritos.length === 0 ? (
+                <p className="px-6 py-10 text-sm text-center text-gray-500">
+                  Todavía no guardaste ningún negocio como favorito.
+                </p>
+              ) : (
+                misFavoritos.map((fav) => (
+                  <div
+                    key={fav.idNegocio}
+                    className="px-6 py-4 border-b flex items-center justify-between gap-3 border-gray-200"
+                  >
+                    <div
+                      onClick={() => router.push(`/negocio/${fav.idNegocio}`)}
+                      className="flex items-center gap-3 cursor-pointer min-w-0"
+                    >
+                      {fav.image_url ? (
+                        <Image
+                          src={fav.image_url}
+                          alt={fav.nombre}
+                          width={40}
+                          height={40}
+                          className="w-10 h-10 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-gray-300 flex items-center justify-center text-sm font-semibold text-gray-600">
+                          {fav.nombre?.charAt(0)}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {fav.nombre}
+                        </p>
+                        <p className="text-xs text-gray-500 capitalize">
+                          {fav.categoria}
+                        </p>
+                        <p className="text-xs text-gray-400 truncate">
+                          {fav.direccion}
+                        </p>
+                      </div>
                     </div>
-                  )}
-                  <div>
-                    <p className="text-sm font-medium">{fav.nombre}</p>
-                    <p className="text-xs text-gray-500">{fav.categoria}</p>
-                    <p className="text-xs text-gray-400">{fav.direccion}</p>
+                    <button
+                      onClick={() => handleQuitarFavorito(fav.idNegocio)}
+                      title="Quitar de favoritos"
+                      className="p-2 shrink-0 cursor-pointer border border-gray-300 rounded-full hover:bg-red-100 hover:border-red-400 hover:text-red-600 transition-colors"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="15"
+                        height="15"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                      >
+                        <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+                      </svg>
+                    </button>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
             <div className="bg-white rounded-xl overflow-hidden">
               <div className="flex pt-5 pb-4 px-6 justify-between border-b border-gray-200 items-center ">

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { supabase } from "../../../lib/supabase";
 import EscribirResenia from "../../ui/EscribirResenia";
+import BotonFavorito from "../../ui/BotonFavorito";
 
 const reseñas = [
   {
@@ -36,6 +37,7 @@ export default function NegocioUserPage({ negocio, session }) {
   const [mensaje, setMensaje] = useState([{}]);
   const [confirmado, setConfirmado] = useState(false);
   const [selectedDia, setSelectedDia] = useState();
+  const [esFavorito, setEsFavorito] = useState(false);
   const [formData, setFormData] = useState({
     servicio: null,
     profesional: null,
@@ -91,10 +93,51 @@ export default function NegocioUserPage({ negocio, session }) {
         setNegocioInfo((prev) => ({ ...prev, dueño: data }));
       }
     };
+    const fetchEsFavorito = async () => {
+      if (!session?.user?.id) return;
+
+      const { data, error } = await supabase
+        .from("Favoritos")
+        .select("id")
+        .eq("idCliente", session.user.id)
+        .eq("idNegocio", negocio.idNegocio)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error consultando favorito:", error.message);
+      } else {
+        setEsFavorito(Boolean(data));
+      }
+    };
+
     fetchEmpleados();
     fetchOwner();
     fetchReseñas();
-  }, [negocio?.idNegocio, negocio?.idDueño]);
+    fetchEsFavorito();
+  }, [negocio?.idNegocio, negocio?.idDueño, session?.user?.id]);
+
+  async function handleToggleFavorito() {
+    if (!session?.user?.id || !negocio?.idNegocio) return;
+
+    const prev = esFavorito;
+    setEsFavorito(!prev);
+
+    const { error } = prev
+      ? await supabase
+          .from("Favoritos")
+          .delete()
+          .eq("idCliente", session.user.id)
+          .eq("idNegocio", negocio.idNegocio)
+      : await supabase.from("Favoritos").insert({
+          idCliente: session.user.id,
+          idNegocio: negocio.idNegocio,
+        });
+
+    if (error) {
+      console.error("Error actualizando favorito:", error.message);
+      setEsFavorito(prev);
+    }
+  }
 
   useEffect(() => {
     if (!formData.fechaDate || !negocio?.idNegocio) return;
@@ -370,9 +413,22 @@ export default function NegocioUserPage({ negocio, session }) {
             <p className="text-gray-500">Imagen no disponible</p>
           </div>
         )}
-        <h1 className="text-3xl font-display font-[800] mt-10">
-          {negocio?.nombre}
-        </h1>
+        <div className="flex items-center justify-between mt-10">
+          <h1 className="text-3xl font-display font-[800]">
+            {negocio?.nombre}
+          </h1>
+          {session?.user?.id && (
+            <BotonFavorito
+              esFavorito={esFavorito}
+              onToggle={handleToggleFavorito}
+              className={`p-2.5 rounded-full border shadow-sm transition-colors ${
+                esFavorito
+                  ? "bg-red-50 border-red-200 text-red-500 hover:bg-red-100"
+                  : "bg-white border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-500"
+              }`}
+            />
+          )}
+        </div>
         <p className="text-gray-600 capitalize mt-2">{negocio?.categoria}</p>
         <div className="mt-4 flex flex-wrap gap-4">
           {INFO.map((item, index) => (
