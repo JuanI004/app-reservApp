@@ -4,43 +4,9 @@ import { supabase } from "../../../lib/supabase";
 import MisTurnosCliente from "./MisTurnosCliente";
 import MisTurnosEmpleado from "./MisTurnosEmpleado";
 import MisReseñasCliente from "./MIsReseñasCliente";
+import Notificaciones from "../../notificaciones/Notificaciones";
 import { useRouter } from "next/navigation";
 import EditarPerfil from "./EditarPerfil";
-
-const NotificacionesPlaceholder = [
-  {
-    id: 1,
-    texto: (
-      <>
-        Tu turno en <strong>Estudio B</strong> fue confirmado para el 28 de
-        mayo.
-      </>
-    ),
-    tiempo: "hace 2h",
-    leida: false,
-  },
-  {
-    id: 2,
-    texto: (
-      <>
-        Recordatorio: tenés turno mañana en <strong>Barber Club</strong> a las
-        11:00.
-      </>
-    ),
-    tiempo: "hace 5h",
-    leida: false,
-  },
-  {
-    id: 3,
-    texto: (
-      <>
-        <strong>Zen Spa</strong> confirmó tu turno del 15 de mayo.
-      </>
-    ),
-    tiempo: "hace 2d",
-    leida: true,
-  },
-];
 
 export default function PerfilCliente({ session }) {
   const [userInfo, setUserInfo] = useState(null);
@@ -52,6 +18,7 @@ export default function PerfilCliente({ session }) {
   const [negociosEmpleoTurnos, setNegociosEmpleoTurnos] = useState({});
   const [tieneEmpleos, setTieneEmpleos] = useState(false);
   const [misFavoritos, setMisFavoritos] = useState([]);
+  const [misNotificaciones, setMisNotificaciones] = useState([]);
   const [modalEditar, setModalEditar] = useState(false);
   const router = useRouter();
 
@@ -340,12 +307,62 @@ export default function PerfilCliente({ session }) {
       }
     }
 
+    async function fetchMisNotificaciones() {
+      if (!session) return;
+
+      const { data, error } = await supabase
+        .from("Notificaciones")
+        .select("*")
+        .eq("idUsuario", session.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching notificaciones:", error);
+      } else {
+        setMisNotificaciones(data ?? []);
+      }
+    }
+
     fetchUserInfo();
     fetchMisTurnos();
     fetchMisReseñas();
     fetchMisTurnosEmpleado();
     fetchMisFavoritos();
+    fetchMisNotificaciones();
   }, [session]);
+
+  async function handleMarcarNotificacionLeida(id) {
+    setMisNotificaciones((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, leida: true } : n)),
+    );
+
+    const { error } = await supabase
+      .from("Notificaciones")
+      .update({ leida: true })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error marcando notificación como leída:", error);
+    }
+  }
+
+  async function handleMarcarTodasNotificacionesLeidas() {
+    const idsNoLeidas = misNotificaciones
+      .filter((n) => !n.leida)
+      .map((n) => n.id);
+    if (idsNoLeidas.length === 0) return;
+
+    setMisNotificaciones((prev) => prev.map((n) => ({ ...n, leida: true })));
+
+    const { error } = await supabase
+      .from("Notificaciones")
+      .update({ leida: true })
+      .in("id", idsNoLeidas);
+
+    if (error) {
+      console.error("Error marcando notificaciones como leídas:", error);
+    }
+  }
 
   async function handleQuitarFavorito(idNegocio) {
     const prev = misFavoritos;
@@ -666,38 +683,11 @@ export default function PerfilCliente({ session }) {
                 ))
               )}
             </div>
-            <div className="bg-white rounded-xl overflow-hidden">
-              <div className="flex pt-5 pb-4 px-6 justify-between border-b border-gray-200 items-center ">
-                <h2 className="text-lg font-display font-bold ">
-                  Notificaciones
-                </h2>
-                <p className="text-brand text-sm cursor-pointer hover:text-[#0b503e]">
-                  Marcar leídas
-                </p>
-              </div>
-              {NotificacionesPlaceholder.map((notificacion) => (
-                <div
-                  key={notificacion.id}
-                  className={`px-6 py-4 border-b last:border-b-0 flex items-start gap-3 border-gray-200 ${notificacion.leida ? "bg-white" : "bg-green-50"}`}
-                >
-                  <span
-                    className={`mt-1 h-2.5 w-2.5 rounded-full border ${
-                      notificacion.leida
-                        ? "border-gray-300 bg-transparent"
-                        : "border-green-600 bg-green-600"
-                    }`}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-700 leading-6">
-                      {notificacion.texto}
-                    </p>
-                  </div>
-                  <p className="text-xs text-gray-400 whitespace-nowrap">
-                    {notificacion.tiempo}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <Notificaciones
+              notificaciones={misNotificaciones}
+              onMarcarLeida={handleMarcarNotificacionLeida}
+              onMarcarTodasLeidas={handleMarcarTodasNotificacionesLeidas}
+            />
 
             <div className="border mb-[105px] border-red-200 bg-red-50 p-4 rounded-xl">
               <div className="flex items-start gap-4">

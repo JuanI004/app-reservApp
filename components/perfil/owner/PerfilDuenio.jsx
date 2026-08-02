@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
 import MisTurnosDuenio from "./MisTurnosDuenio";
 import ReseniasRecibidas from "./ReseniasRecibidas";
+import Notificaciones from "../../notificaciones/Notificaciones";
 import EditarPerfil from "../cliente/EditarPerfil";
 
 export default function PerfilOwner({ session }) {
@@ -12,6 +13,7 @@ export default function PerfilOwner({ session }) {
   const [misNegocios, setMisNegocios] = useState([]);
   const [misTurnos, setMisTurnos] = useState([]);
   const [misReseñas, setMisReseñas] = useState([]);
+  const [misNotificaciones, setMisNotificaciones] = useState([]);
   const [modalEditar, setModalEditar] = useState(false);
 
   async function uploadImageToStorage(file, bucketName, userId) {
@@ -159,14 +161,63 @@ export default function PerfilOwner({ session }) {
         setMisReseñas(reseñasData ?? []);
       }
     };
+    const fetchNotificaciones = async () => {
+      const { data, error } = await supabase
+        .from("Notificaciones")
+        .select("*")
+        .eq("idUsuario", session?.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching notificaciones:", error);
+      } else if (activo) {
+        setMisNotificaciones(data ?? []);
+      }
+    };
+
     fetchUserInfo();
 
     fetchTurnos();
+
+    fetchNotificaciones();
 
     return () => {
       activo = false;
     };
   }, [session]);
+
+  async function handleMarcarNotificacionLeida(id) {
+    setMisNotificaciones((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, leida: true } : n)),
+    );
+
+    const { error } = await supabase
+      .from("Notificaciones")
+      .update({ leida: true })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error marcando notificación como leída:", error);
+    }
+  }
+
+  async function handleMarcarTodasNotificacionesLeidas() {
+    const idsNoLeidas = misNotificaciones
+      .filter((n) => !n.leida)
+      .map((n) => n.id);
+    if (idsNoLeidas.length === 0) return;
+
+    setMisNotificaciones((prev) => prev.map((n) => ({ ...n, leida: true })));
+
+    const { error } = await supabase
+      .from("Notificaciones")
+      .update({ leida: true })
+      .in("id", idsNoLeidas);
+
+    if (error) {
+      console.error("Error marcando notificaciones como leídas:", error);
+    }
+  }
   const DATOS = [
     {
       label: "Nombre",
@@ -393,6 +444,13 @@ export default function PerfilOwner({ session }) {
                 </div>
               )}
             </div>
+
+            <Notificaciones
+              notificaciones={misNotificaciones}
+              onMarcarLeida={handleMarcarNotificacionLeida}
+              onMarcarTodasLeidas={handleMarcarTodasNotificacionesLeidas}
+            />
+
             <div className="border mb-[105px] border-red-200 bg-red-50 p-4 rounded-xl">
               <div className="flex items-start gap-4">
                 <div className="text-red-500">
