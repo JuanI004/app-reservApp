@@ -6,6 +6,14 @@ import Button from "../ui/Button";
 import Image from "next/image";
 import BuscarCiudad from "../ui/BuscarCiudad";
 import CategoriasPicker from "../ui/CategoriasPicker";
+import dynamic from "next/dynamic";
+
+const SelectorUbicacion = dynamic(() => import("../ui/SelectorUbicacion"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[220px] rounded-xl bg-background animate-pulse" />
+  ),
+});
 
 const categorias = [
   { value: "peluqueria", label: "Peluquería" },
@@ -56,6 +64,10 @@ export default function Pag1({ nextPage, info, setInfo, handlePrev = null }) {
     }
     if (!info.negocio.telefono?.trim()) {
       newErrores.errorTelefono = "El teléfono es obligatorio";
+    }
+    if (!info.negocio.lat || !info.negocio.lng) {
+      newErrores.errorUbicacion =
+        "Marcá la ubicación de tu negocio en el mapa";
     }
     setMensaje(newErrores);
     return Object.keys(newErrores).length === 0;
@@ -192,8 +204,27 @@ export default function Pag1({ nextPage, info, setInfo, handlePrev = null }) {
             />
           </div>
 
+          <div className="space-y-2 mt-4">
+            <Label>Ubicación en el mapa *</Label>
+            <SelectorUbicacion
+              lat={info.negocio.lat}
+              lng={info.negocio.lng}
+              onSelect={({ lat, lng }) =>
+                setInfo((prev) => ({
+                  ...prev,
+                  negocio: { ...prev.negocio, lat, lng },
+                }))
+              }
+            />
+            {mensaje.errorUbicacion && (
+              <p className="p-2 bg-[#ef44443f] rounded-xl text-red-600 border border-red-600 text-sm mt-1">
+                {mensaje.errorUbicacion}
+              </p>
+            )}
+          </div>
+
           <section className="grid grid-cols-2 gap-2 mt-4">
-            <div className="space-y-2 mt-4">
+            <div className="space-y-2">
               <Label htmlFor="direccion">Dirección *</Label>
               <Input
                 id="direccion"
@@ -210,7 +241,7 @@ export default function Pag1({ nextPage, info, setInfo, handlePrev = null }) {
                 }
               />
             </div>
-            <div className="space-y-2 mt-4">
+            <div className="space-y-2">
               <Label htmlFor="ciudad">Ciudad / Barrio *</Label>
               <BuscarCiudad
                 value={info.negocio.ciudad}

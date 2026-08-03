@@ -1,8 +1,14 @@
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { supabase } from "../../../lib/supabase";
 import EscribirResenia from "../../ui/EscribirResenia";
 import BotonFavorito from "../../ui/BotonFavorito";
+
+const MostrarUbicacion = dynamic(() => import("../../ui/MostrarUbicacion"), {
+  ssr: false,
+  loading: () => <div className="h-40 w-full bg-[#f3f2f1] animate-pulse" />,
+});
 
 const reseñas = [
   {
@@ -512,20 +518,24 @@ export default function NegocioUserPage({ negocio, session }) {
                 ))}
               </div>
             </div>
-            <div className="bg-white  border border-gray-200 rounded-xl">
-              <div className="w-full flex justify-center items-center h-40 bg-[#f3f2f1]">
-                <span className="rounded-full flex justify-center items-center bg-brand h-10 w-10">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="#ffffff"
-                    viewBox="0 0 256 256"
-                  >
-                    <path d="M128,64a40,40,0,1,0,40,40A40,40,0,0,0,128,64Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,128Zm0-112a88.1,88.1,0,0,0-88,88c0,31.4,14.51,64.68,42,96.25a254.19,254.19,0,0,0,41.45,38.3,8,8,0,0,0,9.18,0A254.19,254.19,0,0,0,174,200.25c27.45-31.57,42-64.85,42-96.25A88.1,88.1,0,0,0,128,16Zm0,206c-16.53-13-72-60.75-72-118a72,72,0,0,1,144,0C200,161.23,144.53,209,128,222Z"></path>
-                  </svg>
-                </span>
-              </div>
+            <div className="bg-white  border border-gray-200 rounded-xl overflow-hidden">
+              {negocio?.lat && negocio?.lng ? (
+                <MostrarUbicacion lat={negocio.lat} lng={negocio.lng} />
+              ) : (
+                <div className="w-full flex justify-center items-center h-40 bg-[#f3f2f1]">
+                  <span className="rounded-full flex justify-center items-center bg-brand h-10 w-10">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      fill="#ffffff"
+                      viewBox="0 0 256 256"
+                    >
+                      <path d="M128,64a40,40,0,1,0,40,40A40,40,0,0,0,128,64Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,128Zm0-112a88.1,88.1,0,0,0-88,88c0,31.4,14.51,64.68,42,96.25a254.19,254.19,0,0,0,41.45,38.3,8,8,0,0,0,9.18,0A254.19,254.19,0,0,0,174,200.25c27.45-31.57,42-64.85,42-96.25A88.1,88.1,0,0,0,128,16Zm0,206c-16.53-13-72-60.75-72-118a72,72,0,0,1,144,0C200,161.23,144.53,209,128,222Z"></path>
+                    </svg>
+                  </span>
+                </div>
+              )}
               <div className="w-full p-4">
                 <h3 className=" text-sm">
                   {negocio?.direccion?.split(",")[0] || "Sin dirección"}
@@ -534,6 +544,16 @@ export default function NegocioUserPage({ negocio, session }) {
                   {negocio?.direccion?.split(",").slice(1).join(",") ||
                     "Sin dirección completa"}
                 </p>
+                {negocio?.lat && negocio?.lng && (
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${negocio.lat},${negocio.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block text-xs text-brand mt-2 hover:underline"
+                  >
+                    Cómo llegar
+                  </a>
+                )}
               </div>
             </div>
             <div className="bg-white p-4  border border-gray-200 rounded-xl">
