@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../../../../lib/supabase";
 import Image from "next/image";
+import Paginacion from "../../../../ui/Paginacion";
+
+const TURNOS_POR_PAGINA = 5;
 
 export default function ListaTurnos({
   turnosDeHoy = [],
@@ -10,6 +13,7 @@ export default function ListaTurnos({
   handleCompletar,
 }) {
   const [filtro, setFiltro] = useState("Todos");
+  const [pagina, setPagina] = useState(1);
   const [nombresUsuarios, setNombresUsuarios] = useState({});
 
   useEffect(() => {
@@ -86,6 +90,16 @@ export default function ListaTurnos({
       ? turnosDeHoy
       : turnosDeHoy.filter((t) => t.estado + "s" === filtro.toLowerCase());
 
+  const totalPaginas = Math.max(
+    1,
+    Math.ceil(turnosFiltrados.length / TURNOS_POR_PAGINA),
+  );
+  const paginaSegura = Math.min(pagina, totalPaginas);
+  const turnosPagina = turnosFiltrados.slice(
+    (paginaSegura - 1) * TURNOS_POR_PAGINA,
+    paginaSegura * TURNOS_POR_PAGINA,
+  );
+
   return (
     <div className="bg-white w-full rounded-xl pt-5 self-start">
       <h2 className="text-lg font-display px-6 font-bold mb-4">
@@ -100,7 +114,10 @@ export default function ListaTurnos({
                 ? "bg-white  text-brand shadow"
                 : " text-gray-700"
             }`}
-            onClick={() => setFiltro(estado.label)}
+            onClick={() => {
+              setFiltro(estado.label);
+              setPagina(1);
+            }}
           >
             {estado.label}{" "}
             {estado.cant > 0 && (
@@ -113,7 +130,7 @@ export default function ListaTurnos({
       </div>
       <div className="">
         {turnosFiltrados.length > 0 ? (
-          turnosFiltrados.map((turno) => (
+          turnosPagina.map((turno) => (
             <div
               key={turno.idTurno}
               className="border-t border-gray-200 p-6  flex items-center justify-between"
@@ -232,6 +249,11 @@ export default function ListaTurnos({
           </div>
         )}
       </div>
+      <Paginacion
+        pagina={paginaSegura}
+        totalPaginas={totalPaginas}
+        onCambiar={setPagina}
+      />
     </div>
   );
 }

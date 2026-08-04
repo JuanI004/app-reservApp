@@ -3,6 +3,10 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "../../../../../lib/supabase";
+import {
+  parseTurnoDateTime,
+  calcularCambioPorcentual,
+} from "../../../../../lib/turnos";
 import ListaTurnos from "./ListaTurnos";
 import Image from "next/image";
 
@@ -148,6 +152,36 @@ export default function PanelNegocio({
   const turnosPendientes = turnosHoy.filter((t) => t.estado === "pendiente");
   const turnosCancelados = turnosHoy.filter((t) => t.estado === "cancelado");
 
+  const mesAnteriorRef = new Date(
+    fechaHoy.getFullYear(),
+    fechaHoy.getMonth() - 1,
+    1,
+  );
+  const turnosEsteMes = turnosState.filter((t) => {
+    const f = parseTurnoDateTime(t);
+    return (
+      f.getMonth() === fechaHoy.getMonth() &&
+      f.getFullYear() === fechaHoy.getFullYear()
+    );
+  });
+  const turnosMesAnterior = turnosState.filter((t) => {
+    const f = parseTurnoDateTime(t);
+    return (
+      f.getMonth() === mesAnteriorRef.getMonth() &&
+      f.getFullYear() === mesAnteriorRef.getFullYear()
+    );
+  });
+  const cambioMes = calcularCambioPorcentual(
+    turnosEsteMes.length,
+    turnosMesAnterior.length,
+  );
+  const turnosPendientesTotal = turnosState.filter(
+    (t) => t.estado === "pendiente",
+  );
+  const turnosCanceladosMes = turnosEsteMes.filter(
+    (t) => t.estado === "cancelado",
+  );
+
   const TABS = [
     {
       label: "Turnos hoy",
@@ -168,7 +202,7 @@ export default function PanelNegocio({
     },
     {
       label: "Este mes",
-      value: turnos.length,
+      value: turnosEsteMes.length,
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -180,12 +214,14 @@ export default function PanelNegocio({
           <path d="M240,128a8,8,0,0,1-8,8H204.94l-37.78,75.58A8,8,0,0,1,160,216h-.4a8,8,0,0,1-7.08-5.14L95.35,60.76,63.28,131.31A8,8,0,0,1,56,136H24a8,8,0,0,1,0-16H50.85L88.72,36.69a8,8,0,0,1,14.76.46l57.51,151,31.85-63.71A8,8,0,0,1,200,120h32A8,8,0,0,1,240,128Z"></path>
         </svg>
       ),
-      extra: "↑ 12% vs mes anterior",
+      extra: cambioMes
+        ? `${cambioMes.sign}${cambioMes.percentage}% vs mes anterior`
+        : "Sin datos del mes anterior",
       color: "#2563EB",
     },
     {
       label: "Pendientes",
-      value: turnosPendientes.length,
+      value: turnosPendientesTotal.length,
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -202,7 +238,7 @@ export default function PanelNegocio({
     },
     {
       label: "Cancelados",
-      value: turnosCancelados.length,
+      value: turnosCanceladosMes.length,
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"

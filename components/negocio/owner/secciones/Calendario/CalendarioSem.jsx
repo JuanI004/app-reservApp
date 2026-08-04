@@ -1,4 +1,5 @@
 import Calendario from "./Calendario";
+import { calcularCambioPorcentual } from "../../../../../lib/turnos";
 
 export default function CalendarioSem({
   turnos = [],
@@ -15,14 +16,25 @@ export default function CalendarioSem({
     }
     return new Date(dateStr);
   };
+
+  const hoy = new Date();
+  const inicioSemana = new Date(hoy);
+  inicioSemana.setDate(hoy.getDate() - hoy.getDay());
+  const finSemana = new Date(inicioSemana);
+  finSemana.setDate(inicioSemana.getDate() + 6);
+
+  const inicioSemanaAnterior = new Date(inicioSemana);
+  inicioSemanaAnterior.setDate(inicioSemana.getDate() - 7);
+  const finSemanaAnterior = new Date(inicioSemana);
+  finSemanaAnterior.setDate(inicioSemana.getDate() - 1);
+
   const turnosSemana = turnos.filter((turno) => {
     const fechaTurno = parseLocalDate(turno.fecha);
-    const hoy = new Date();
-    const inicioSemana = new Date(hoy);
-    inicioSemana.setDate(hoy.getDate() - hoy.getDay());
-    const finSemana = new Date(inicioSemana);
-    finSemana.setDate(inicioSemana.getDate() + 6);
     return fechaTurno >= inicioSemana && fechaTurno <= finSemana;
+  });
+  const turnosSemanaAnterior = turnos.filter((turno) => {
+    const fechaTurno = parseLocalDate(turno.fecha);
+    return fechaTurno >= inicioSemanaAnterior && fechaTurno <= finSemanaAnterior;
   });
   const counts = turnosSemana.reduce((acc, turno) => {
     const fechaTurno = parseLocalDate(turno.fecha);
@@ -43,6 +55,13 @@ export default function CalendarioSem({
   const turnosPendientes = turnosSemana.filter((t) => t.estado === "pendiente");
   const turnosConfirmados = turnosSemana.filter(
     (t) => t.estado === "confirmado",
+  );
+  const confirmadosSemanaAnterior = turnosSemanaAnterior.filter(
+    (t) => t.estado === "confirmado",
+  ).length;
+  const cambioConfirmados = calcularCambioPorcentual(
+    turnosConfirmados.length,
+    confirmadosSemanaAnterior,
   );
   const TABS = [
     {
@@ -76,7 +95,9 @@ export default function CalendarioSem({
           <path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"></path>
         </svg>
       ),
-      extra: "↑ 12% vs mes anterior",
+      extra: cambioConfirmados
+        ? `${cambioConfirmados.sign}${cambioConfirmados.percentage}% vs semana anterior`
+        : "Sin datos de la semana anterior",
       color: "#1d9e75",
     },
     {

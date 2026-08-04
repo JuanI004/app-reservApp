@@ -5,6 +5,7 @@ import Button from "../ui/Button";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase";
+import { calcularCambioPorcentual } from "../../lib/turnos";
 import NegociosOwner from "../NegociosOwner";
 import { useCrearNegocioModal } from "../crearNegocio/CrearNegocioModalProvider";
 
@@ -73,12 +74,17 @@ export default function HomeOwner({ session }) {
     cargarDatos();
   }, [refreshToken]);
 
-  function calcularCambio(actual, anterior) {
-    if (!anterior) {
-      return actual > 0 ? { percentage: 100, sign: "+" } : null;
-    }
-    const diff = Math.round(((actual - anterior) / anterior) * 100);
-    return { percentage: Math.abs(diff), sign: diff >= 0 ? "+" : "-" };
+  if (loading) {
+    return (
+      <div className="min-h-screen w-full bg-background flex items-center justify-center px-6">
+        <div className="flex flex-col items-center gap-4 rounded-2xl bg-white/80 px-8 py-10 shadow-sm border border-gray-100">
+          <div className="h-14 w-14 rounded-full border-4 border-brand/20 border-t-brand animate-spin" />
+          <p className="text-sm font-medium text-gray-500">
+            Cargando tus negocios...
+          </p>
+        </div>
+      </div>
+    );
   }
 
   function formatearMonto(valor) {
@@ -100,7 +106,7 @@ export default function HomeOwner({ session }) {
     {
       label: "Turnos este mes",
       cant: turnosMes,
-      additionalInfo: calcularCambio(turnosMes, turnosMesAnterior),
+      additionalInfo: calcularCambioPorcentual(turnosMes, turnosMesAnterior),
     },
     {
       label: "Empleados",
@@ -110,7 +116,7 @@ export default function HomeOwner({ session }) {
     {
       label: "Ingresos",
       cant: formatearMonto(ingresosMes),
-      additionalInfo: calcularCambio(ingresosMes, ingresosMesAnterior),
+      additionalInfo: calcularCambioPorcentual(ingresosMes, ingresosMesAnterior),
     },
   ];
 
@@ -184,11 +190,7 @@ export default function HomeOwner({ session }) {
             </div>
           ))}
         </section>
-        {loading ? (
-          <p className="text-center text-gray-500 mt-10">
-            Cargando negocios...
-          </p>
-        ) : error ? (
+        {error ? (
           <p className="text-center text-red-500 mt-10">{error}</p>
         ) : negocios.length === 0 ? (
           <p className="text-center text-gray-500 mt-10">

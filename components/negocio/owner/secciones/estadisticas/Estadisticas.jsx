@@ -1,7 +1,48 @@
+import { useEffect, useState } from "react";
+import { supabase } from "../../../../../lib/supabase";
+import { calcularCambioPorcentual } from "../../../../../lib/turnos";
 import EstadoTurnos from "./EstadoTurnos.jsx";
 import ActividadMes from "./ActividadMes";
 
 export default function Estadisticas({ turnos, negocio, personalTurnos }) {
+  const [reseñasStats, setReseñasStats] = useState({
+    promedio: null,
+    cantidad: 0,
+  });
+
+  useEffect(() => {
+    if (!negocio?.idNegocio) return;
+    let activo = true;
+
+    async function fetchReseñas() {
+      const { data, error } = await supabase
+        .from("Reseñas")
+        .select("rating")
+        .eq("idNegocio", negocio.idNegocio);
+
+      if (error) {
+        console.error("Error trayendo reseñas:", error.message);
+        return;
+      }
+      if (!activo) return;
+
+      const ratings = (data ?? [])
+        .map((r) => Number(r.rating))
+        .filter((r) => !Number.isNaN(r));
+      const promedio = ratings.length
+        ? Math.round(
+            (ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10,
+          ) / 10
+        : null;
+      setReseñasStats({ promedio, cantidad: ratings.length });
+    }
+
+    fetchReseñas();
+    return () => {
+      activo = false;
+    };
+  }, [negocio?.idNegocio]);
+
   const parseLocalDate = (dateStr) => {
     if (!dateStr) return new Date(dateStr);
     const isoDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
@@ -12,25 +53,51 @@ export default function Estadisticas({ turnos, negocio, personalTurnos }) {
     return new Date(dateStr);
   };
 
+  const ahora = new Date();
   const turnosMes = turnos.filter((t) => {
     const turnoDate = parseLocalDate(t.fecha);
-    const now = new Date();
     return (
-      turnoDate.getMonth() === now.getMonth() &&
-      turnoDate.getFullYear() === now.getFullYear()
+      turnoDate.getMonth() === ahora.getMonth() &&
+      turnoDate.getFullYear() === ahora.getFullYear()
     );
   });
-  console.log("Turnos del mes:", turnosMes);
-  const facturacion = turnosMes.reduce((total, turno) => {
-    if (turno.estado !== "completado") return total;
-    const servicio = negocio.servicios.find((s) => s.nombre === turno.servicio);
-    return total + (servicio ? parseFloat(servicio.precio) : 0);
-  }, 0);
+  const mesAnteriorRef = new Date(ahora.getFullYear(), ahora.getMonth() - 1, 1);
+  const turnosMesAnterior = turnos.filter((t) => {
+    const turnoDate = parseLocalDate(t.fecha);
+    return (
+      turnoDate.getMonth() === mesAnteriorRef.getMonth() &&
+      turnoDate.getFullYear() === mesAnteriorRef.getFullYear()
+    );
+  });
+
+  function calcularFacturacion(listaTurnos) {
+    return listaTurnos.reduce((total, turno) => {
+      if (turno.estado !== "completado") return total;
+      const servicio = negocio?.servicios?.find(
+        (s) => s.nombre === turno.servicio,
+      );
+      return total + (servicio ? parseFloat(servicio.precio) : 0);
+    }, 0);
+  }
+
+  const facturacion = calcularFacturacion(turnosMes);
+  const facturacionMesAnterior = calcularFacturacion(turnosMesAnterior);
+
   const parsearFacturacion = (num) => {
     if (num >= 1e6) return `$${(num / 1e6).toFixed(1)}M`;
     if (num >= 1e3) return `$${(num / 1e3).toFixed(1)}K`;
     return `$${num}`;
   };
+
+  const cambioTurnosMes = calcularCambioPorcentual(
+    turnosMes.length,
+    turnosMesAnterior.length,
+  );
+  const cambioFacturacion = calcularCambioPorcentual(
+    facturacion,
+    facturacionMesAnterior,
+  );
+
   const turnosCancelados = turnosMes.filter((t) => t.estado === "cancelado");
   const TABS = [
     {
@@ -47,7 +114,9 @@ export default function Estadisticas({ turnos, negocio, personalTurnos }) {
           <path d="M240,128a8,8,0,0,1-8,8H204.94l-37.78,75.58A8,8,0,0,1,160,216h-.4a8,8,0,0,1-7.08-5.14L95.35,60.76,63.28,131.31A8,8,0,0,1,56,136H24a8,8,0,0,1,0-16H50.85L88.72,36.69a8,8,0,0,1,14.76.46l57.51,151,31.85-63.71A8,8,0,0,1,200,120h32A8,8,0,0,1,240,128Z"></path>
         </svg>
       ),
-      extra: `↑ 12% vs mes anterior`,
+      extra: cambioTurnosMes
+        ? `${cambioTurnosMes.sign}${cambioTurnosMes.percentage}% vs mes anterior`
+        : "Sin datos del mes anterior",
       color: "#1d9e75",
     },
     {
@@ -64,7 +133,9 @@ export default function Estadisticas({ turnos, negocio, personalTurnos }) {
           <path d="M152,120H136V56h8a32,32,0,0,1,32,32,8,8,0,0,0,16,0,48.05,48.05,0,0,0-48-48h-8V24a8,8,0,0,0-16,0V40h-8a48,48,0,0,0,0,96h8v64H104a32,32,0,0,1-32-32,8,8,0,0,0-16,0,48.05,48.05,0,0,0,48,48h16v16a8,8,0,0,0,16,0V216h16a48,48,0,0,0,0-96Zm-40,0a32,32,0,0,1,0-64h8v64Zm40,80H136V136h16a32,32,0,0,1,0,64Z"></path>
         </svg>
       ),
-      extra: "↑ 12% vs mes anterior",
+      extra: cambioFacturacion
+        ? `${cambioFacturacion.sign}${cambioFacturacion.percentage}% vs mes anterior`
+        : "Sin datos del mes anterior",
       color: "#1d9e75",
     },
 
@@ -87,7 +158,7 @@ export default function Estadisticas({ turnos, negocio, personalTurnos }) {
     },
     {
       label: "Rating",
-      value: 4.9,
+      value: reseñasStats.promedio ?? "—",
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -99,7 +170,7 @@ export default function Estadisticas({ turnos, negocio, personalTurnos }) {
           <path d="M239.18,97.26A16.38,16.38,0,0,0,224.92,86l-59-4.76L143.14,26.15a16.36,16.36,0,0,0-30.27,0L90.11,81.23,31.08,86a16.46,16.46,0,0,0-9.37,28.86l45,38.83L53,211.75a16.38,16.38,0,0,0,24.5,17.82L128,198.49l50.53,31.08A16.4,16.4,0,0,0,203,211.75l-13.76-58.07,45-38.83A16.43,16.43,0,0,0,239.18,97.26Zm-15.34,5.47-48.7,42a8,8,0,0,0-2.56,7.91l14.88,62.8a.37.37,0,0,1-.17.48c-.18.14-.23.11-.38,0l-54.72-33.65a8,8,0,0,0-8.38,0L69.09,215.94c-.15.09-.19.12-.38,0a.37.37,0,0,1-.17-.48l14.88-62.8a8,8,0,0,0-2.56-7.91l-48.7-42c-.12-.1-.23-.19-.13-.5s.18-.27.33-.29l63.92-5.16A8,8,0,0,0,103,91.86l24.62-59.61c.08-.17.11-.25.35-.25s.27.08.35.25L153,91.86a8,8,0,0,0,6.75,4.92l63.92,5.16c.15,0,.24,0,.33.29S224,102.63,223.84,102.73Z"></path>
         </svg>
       ),
-      extra: "128 reseñas",
+      extra: `${reseñasStats.cantidad} reseña${reseñasStats.cantidad === 1 ? "" : "s"}`,
       color: "#D97706",
     },
   ];
@@ -113,7 +184,6 @@ export default function Estadisticas({ turnos, negocio, personalTurnos }) {
       ).length,
     }),
   );
-  console.log("Turnos por empleado:", turnosPorEmpleado);
   return (
     <>
       <section className="grid grid-cols-2 sm:grid-cols-4 gap-2">
