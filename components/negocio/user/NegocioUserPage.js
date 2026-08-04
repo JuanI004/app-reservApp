@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { supabase } from "../../../lib/supabase";
+import { estaNegocioAbierto } from "../../../lib/turnos";
 import EscribirResenia from "../../ui/EscribirResenia";
 import BotonFavorito from "../../ui/BotonFavorito";
 
@@ -393,11 +394,7 @@ export default function NegocioUserPage({ negocio, session }) {
   const minutosAhoraMismo =
     ahoraMismo.getHours() * 60 + ahoraMismo.getMinutes();
 
-  const estaAbierto = Boolean(
-    horarioHoy?.activa &&
-      minutosAhoraMismo >= horaAMinutos(horarioHoy.desde) &&
-      minutosAhoraMismo < horaAMinutos(horarioHoy.hasta),
-  );
+  const estaAbierto = estaNegocioAbierto(negocio?.horarios);
 
   const turnosRestantesHoy = horarioHoy?.activa
     ? generarTurnos(

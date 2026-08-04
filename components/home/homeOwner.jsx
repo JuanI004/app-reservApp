@@ -13,10 +13,12 @@ export default function HomeOwner({ session }) {
   const { abrirCrearNegocio, refreshToken } = useCrearNegocioModal();
   const [loading, setLoading] = useState(true);
   const [negocios, setNegocios] = useState([]);
+  const [estadisticas, setEstadisticas] = useState(null);
+  const [estadisticasPorNegocio, setEstadisticasPorNegocio] = useState({});
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    async function fetchNegocios() {
+    async function cargarDatos() {
       setLoading(true);
 
       const {
@@ -30,35 +32,85 @@ export default function HomeOwner({ session }) {
         return;
       }
 
-      const { data, error } = await supabase
-        .from("Negocios")
-        .select("*")
-        .eq("idDueño", user.id);
+      const [
+        { data: negociosData, error: negociosError },
+        { data: statsData, error: statsError },
+        { data: statsPorNegocioData, error: statsPorNegocioError },
+      ] = await Promise.all([
+        supabase.from("Negocios").select("*").eq("idDueño", user.id),
+        supabase.rpc("estadisticas_dueno"),
+        supabase.rpc("estadisticas_por_negocio"),
+      ]);
 
-      if (error) {
-        setError(error.message);
+      if (negociosError) {
+        setError(negociosError.message);
       } else {
-        setNegocios(data);
+        setNegocios(negociosData);
+      }
+
+      if (statsError) {
+        console.error("Error trayendo estadísticas:", statsError.message);
+      } else {
+        setEstadisticas(statsData?.[0] ?? null);
+      }
+
+      if (statsPorNegocioError) {
+        console.error(
+          "Error trayendo estadísticas por negocio:",
+          statsPorNegocioError.message,
+        );
+      } else {
+        const mapa = (statsPorNegocioData ?? []).reduce((acc, fila) => {
+          acc[fila.idNegocio] = fila;
+          return acc;
+        }, {});
+        setEstadisticasPorNegocio(mapa);
       }
 
       setLoading(false);
     }
 
-    fetchNegocios();
+    cargarDatos();
   }, [refreshToken]);
+
+  function calcularCambio(actual, anterior) {
+    if (!anterior) {
+      return actual > 0 ? { percentage: 100, sign: "+" } : null;
+    }
+    const diff = Math.round(((actual - anterior) / anterior) * 100);
+    return { percentage: Math.abs(diff), sign: diff >= 0 ? "+" : "-" };
+  }
+
+  function formatearMonto(valor) {
+    const num = Number(valor) || 0;
+    if (num >= 1000) {
+      const miles = num / 1000;
+      return `$${miles % 1 === 0 ? miles.toFixed(0) : miles.toFixed(1)}k`;
+    }
+    return `$${num}`;
+  }
+
+  const turnosMes = estadisticas?.turnos_mes ?? 0;
+  const turnosMesAnterior = estadisticas?.turnos_mes_anterior ?? 0;
+  const ingresosMes = Number(estadisticas?.ingresos_mes) || 0;
+  const ingresosMesAnterior = Number(estadisticas?.ingresos_mes_anterior) || 0;
 
   const stats = [
     { label: "Negocios activos", cant: negocios.length },
     {
       label: "Turnos este mes",
-      cant: 148,
-      additionalInfo: { percentage: 12, sign: "+" },
+      cant: turnosMes,
+      additionalInfo: calcularCambio(turnosMes, turnosMesAnterior),
     },
-    { label: "Empleados", cant: 5, additionalInfo: "en todos los negocios" },
+    {
+      label: "Empleados",
+      cant: estadisticas?.empleados ?? 0,
+      additionalInfo: "en todos los negocios",
+    },
     {
       label: "Ingresos",
-      cant: "$48k",
-      additionalInfo: { percentage: 8, sign: "+" },
+      cant: formatearMonto(ingresosMes),
+      additionalInfo: calcularCambio(ingresosMes, ingresosMesAnterior),
     },
   ];
 
@@ -110,8 +162,6 @@ export default function HomeOwner({ session }) {
               <h2 className="text-xs uppercase text-gray-500">{stat.label}</h2>
               <p className="font-display text-2xl font-[800] text-black">
                 {stat.cant}
-                {/* Placeholder, falta implementar lógica para contar turnos
-                reales */}
               </p>
               {stat.additionalInfo && stat.additionalInfo.percentage ? (
                 <p
@@ -147,6 +197,7 @@ export default function HomeOwner({ session }) {
         ) : (
           <NegociosOwner
             negocios={negocios}
+            estadisticasPorNegocio={estadisticasPorNegocio}
             handleDeleteNegocio={eliminarNegocio}
           />
         )}

@@ -2,8 +2,13 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { estaNegocioAbierto } from "../lib/turnos";
 
-export default function NegociosOwner({ negocios, handleDeleteNegocio }) {
+export default function NegociosOwner({
+  negocios,
+  estadisticasPorNegocio = {},
+  handleDeleteNegocio,
+}) {
   const router = useRouter();
 
   if (!negocios || negocios.length === 0) {
@@ -12,7 +17,11 @@ export default function NegociosOwner({ negocios, handleDeleteNegocio }) {
 
   return (
     <div className="grid gap-6 mt-6 grid-cols-1 md:grid-cols-2">
-      {negocios.map((negocio) => (
+      {negocios.map((negocio) => {
+        const abierto = estaNegocioAbierto(negocio.horarios);
+        const stats = estadisticasPorNegocio[negocio.idNegocio];
+
+        return (
         <article
           key={negocio.idNegocio}
           className="bg-white  rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
@@ -71,22 +80,34 @@ export default function NegociosOwner({ negocios, handleDeleteNegocio }) {
                       </p>
                     </div>
                   </div>
-                  <span className="text-sm text-brand border border-brand bg-brand-light/20 px-3 py-1 rounded-full">
-                    Abierto
+                  <span
+                    className={`text-sm border px-3 py-1 rounded-full ${
+                      abierto
+                        ? "text-brand border-brand bg-brand-light/20"
+                        : "text-gray-500 border-gray-300 bg-gray-100"
+                    }`}
+                  >
+                    {abierto ? "Abierto" : "Cerrado"}
                   </span>
                 </div>
 
                 <div className="  rounded-xl px-4 grid grid-cols-3 gap-3 text-center text-sm text-gray-700">
                   <div className="py-4 bg-background rounded-lg ">
-                    <div className="text-xl font-display font-[700]">84</div>
+                    <div className="text-xl font-display font-[700]">
+                      {stats?.turnos_mes ?? 0}
+                    </div>
                     <div className="text-xs text-gray-400">Turnos mes</div>
                   </div>
                   <div className="py-4 bg-background rounded-lg ">
-                    <div className="text-xl font-display font-[700]">6</div>
+                    <div className="text-xl font-display font-[700]">
+                      {stats?.turnos_hoy ?? 0}
+                    </div>
                     <div className="text-xs text-gray-400">Hoy</div>
                   </div>
                   <div className="py-4 bg-background rounded-lg ">
-                    <div className="text-xl font-display font-[700]">4.9</div>
+                    <div className="text-xl font-display font-[700]">
+                      {stats?.rating_promedio ?? "—"}
+                    </div>
                     <div className="text-xs text-gray-400">Rating</div>
                   </div>
                 </div>
@@ -118,7 +139,8 @@ export default function NegociosOwner({ negocios, handleDeleteNegocio }) {
               </div>
             </div>
           </article>
-      ))}
+        );
+      })}
     </div>
   );
 }
