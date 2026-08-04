@@ -39,6 +39,7 @@ const reseñas = [
 export default function NegocioUserPage({ negocio, session }) {
   const [turnosOcupados, setTurnosOcupados] = useState([]);
   const [negocioInfo, setNegocioInfo] = useState(null);
+  const [cargandoNegocio, setCargandoNegocio] = useState(true);
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState([{}]);
   const [confirmado, setConfirmado] = useState(false);
@@ -68,7 +69,6 @@ export default function NegocioUserPage({ negocio, session }) {
         console.error("Error trayendo empleados:", error.message);
       } else {
         setNegocioInfo((prev) => ({ ...prev, empleados: data }));
-        setCargando(false);
       }
     };
     const fetchReseñas = async () => {
@@ -116,10 +116,20 @@ export default function NegocioUserPage({ negocio, session }) {
       }
     };
 
-    fetchEmpleados();
-    fetchOwner();
-    fetchReseñas();
-    fetchEsFavorito();
+    const cargarDatos = async () => {
+      try {
+        await Promise.all([
+          fetchEmpleados(),
+          fetchOwner(),
+          fetchReseñas(),
+          fetchEsFavorito(),
+        ]);
+      } finally {
+        setCargandoNegocio(false);
+      }
+    };
+
+    cargarDatos();
   }, [negocio?.idNegocio, negocio?.idDueño, session?.user?.id]);
 
   async function handleToggleFavorito() {
@@ -190,6 +200,19 @@ export default function NegocioUserPage({ negocio, session }) {
     fetchTurnos();
   }, [formData.fechaDate, formData.idEmpleado, negocio?.idNegocio]);
 
+  if (cargandoNegocio) {
+    return (
+      <div className="min-h-screen w-full bg-background flex items-center justify-center px-6">
+        <div className="flex flex-col items-center gap-4 rounded-2xl bg-white/80 px-8 py-10 shadow-sm border border-gray-100">
+          <div className="h-14 w-14 rounded-full border-4 border-brand/20 border-t-brand animate-spin" />
+          <p className="text-sm font-medium text-gray-500">
+            Cargando negocio...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   function formatearFechaReseña(fechaStr) {
     if (!fechaStr) return "";
     let s = String(fechaStr).trim();
@@ -245,11 +268,14 @@ export default function NegocioUserPage({ negocio, session }) {
     if (error) {
       console.error("Error al reservar turno:", error.message);
       const esLimiteDiario = error.message?.includes("LIMITE_TURNOS_DIA");
+      const esTurnoPasado = error.message?.includes("TURNO_PASADO");
       setMensaje({
         tipo: "confirmarError",
         texto: esLimiteDiario
           ? "Ya reservaste 2 turnos en este negocio hoy. Probá de nuevo mañana."
-          : "Error al reservar turno. Intenta de nuevo.",
+          : esTurnoPasado
+            ? "Ese horario ya pasó. Elegí otro horario disponible."
+            : "Error al reservar turno. Intenta de nuevo.",
       });
     } else {
       setConfirmado(true);
@@ -289,6 +315,17 @@ export default function NegocioUserPage({ negocio, session }) {
     }
     return turnos;
   };
+
+  function esHorarioPasado(horario) {
+    const hoyStr = new Date().toLocaleDateString("en-CA");
+    if (formData.fechaDate !== hoyStr) return false;
+
+    const ahora = new Date();
+    const [h, m] = horario.split(":").map(Number);
+    const minutosHorario = h * 60 + m;
+    const minutosAhora = ahora.getHours() * 60 + ahora.getMinutes();
+    return minutosHorario <= minutosAhora;
+  }
 
   const horarioSeleccionado = negocio?.horarios?.find(
     (h) => h?.dia === selectedDia && h?.activa,
@@ -345,19 +382,46 @@ export default function NegocioUserPage({ negocio, session }) {
         : "Sin teléfono registrado",
     },
   ];
+  function horaAMinutos(horaStr) {
+    const [h, m] = (horaStr || "00:00").split(":").map(Number);
+    return h * 60 + m;
+  }
+
+  const ahoraMismo = new Date();
+  const diaSemanaHoy = ahoraMismo.getDay() === 0 ? 7 : ahoraMismo.getDay();
+  const horarioHoy = negocio?.horarios?.find((h) => h?.dia === diaSemanaHoy);
+  const minutosAhoraMismo =
+    ahoraMismo.getHours() * 60 + ahoraMismo.getMinutes();
+
+  const estaAbierto = Boolean(
+    horarioHoy?.activa &&
+      minutosAhoraMismo >= horaAMinutos(horarioHoy.desde) &&
+      minutosAhoraMismo < horaAMinutos(horarioHoy.hasta),
+  );
+
+  const turnosRestantesHoy = horarioHoy?.activa
+    ? generarTurnos(
+        horarioHoy.desde,
+        horarioHoy.hasta,
+        negocio?.tamTurno || 30,
+      ).filter((turno) => horaAMinutos(turno) > minutosAhoraMismo)
+    : [];
+
   const infoDelDia = [
     {
       title: "Estado",
-      value: "Abierto ahora",
-      color: "#1d9e75",
+      value: estaAbierto ? "Abierto ahora" : "Cerrado ahora",
+      color: estaAbierto ? "#1d9e75" : "#e24b4a",
     },
     {
       title: "Turnos hoy",
-      value: "8 disponibles",
+      value: `${turnosRestantesHoy.length} disponibles`,
     },
     {
       title: "Espera aprox.",
-      value: "~10 min",
+      value: negocio?.esperaAprox
+        ? `~${negocio.esperaAprox} min`
+        : "Sin datos",
     },
   ];
 
@@ -794,14 +858,18 @@ export default function NegocioUserPage({ negocio, session }) {
                 ) : (
                   turnosDisponibles.map((turno, index) => {
                     const estaOcupado = turnosOcupados.includes(turno);
+                    const esPasado = esHorarioPasado(turno);
+                    const noDisponible = estaOcupado || esPasado;
                     return (
                       <button
                         key={index}
+                        disabled={noDisponible}
+                        title={esPasado ? "Este horario ya pasó" : undefined}
                         onClick={() =>
                           setFormData((prev) => ({ ...prev, horario: turno }))
                         }
                         className={`w-full flex cursor-pointer justify-center items-center text-sm text-center px-4 py-2 ${
-                          estaOcupado
+                          noDisponible
                             ? "opacity-35 line-through bg-gray-100 border border-gray-200 cursor-not-allowed"
                             : formData.horario === turno
                               ? " text-white bg-brand"

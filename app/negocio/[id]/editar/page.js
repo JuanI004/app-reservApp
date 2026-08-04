@@ -309,6 +309,9 @@ export default function EditarNegocioPage() {
     ) {
       updatedData.tamTurno = camposEditados.intervaloTurnos;
     }
+    if (Object.prototype.hasOwnProperty.call(camposEditados, "esperaAprox")) {
+      updatedData.esperaAprox = camposEditados.esperaAprox;
+    }
     if (Object.prototype.hasOwnProperty.call(camposEditados, "servicios")) {
       updatedData.servicios = camposEditados.servicios;
     }
@@ -815,25 +818,48 @@ export default function EditarNegocioPage() {
               </div>
             );
           })}
-          <div className="flex w-full items-end flex-col gap-1">
-            <Label>Intervalo entre turnos</Label>
-            <Input
-              type="number"
-              value={camposEditados.intervaloTurnos ?? negocio?.tamTurno}
-              onChange={(e) =>
-                setCamposEditados((prev) => ({
-                  ...prev,
-                  intervaloTurnos: parseInt(e.target.value, 10),
-                }))
-              }
-              className="w-40"
-              placeholder="Ej: 30 (minutos)"
-            />
-            {mensaje?.errorIntervaloTurnos && (
-              <p className="text-sm mt-1 p-2 rounded-lg border bg-[#ef44443f] text-red-600 border-red-600">
-                {mensaje.errorIntervaloTurnos}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1">
+              <Label>Intervalo entre turnos</Label>
+              <Input
+                type="number"
+                value={camposEditados.intervaloTurnos ?? negocio?.tamTurno}
+                onChange={(e) =>
+                  setCamposEditados((prev) => ({
+                    ...prev,
+                    intervaloTurnos: parseInt(e.target.value, 10),
+                  }))
+                }
+                placeholder="Ej: 30 (minutos)"
+              />
+              {mensaje?.errorIntervaloTurnos && (
+                <p className="text-sm mt-1 p-2 rounded-lg border bg-[#ef44443f] text-red-600 border-red-600">
+                  {mensaje.errorIntervaloTurnos}
+                </p>
+              )}
+            </div>
+            <div className="flex flex-col gap-1">
+              <Label>Espera aproximada (minutos)</Label>
+              <Input
+                type="number"
+                value={
+                  camposEditados.esperaAprox ?? negocio?.esperaAprox ?? ""
+                }
+                onChange={(e) =>
+                  setCamposEditados((prev) => ({
+                    ...prev,
+                    esperaAprox: e.target.value
+                      ? parseInt(e.target.value, 10)
+                      : null,
+                  }))
+                }
+                placeholder="Ej: 10"
+              />
+              <p className="text-xs text-gray-500">
+                Se muestra en la página del negocio para que el cliente sepa
+                cuánto esperar aproximadamente.
               </p>
-            )}
+            </div>
           </div>
         </div>
         <h2 className="text-lg font-display font-[700] mt-6">Servicios</h2>
