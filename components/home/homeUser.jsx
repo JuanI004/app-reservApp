@@ -3,17 +3,9 @@ import { supabase } from "../../lib/supabase";
 import SearchBar from "../ui/SearchBar";
 import { useRouter } from "next/navigation";
 import CardNegocio from "../ui/CardNegocio";
+import categoriasBase from "../../utils/categorias";
 
-const categorias = [
-  { value: "todos", label: "Todos" },
-  { value: "peluqueria", label: "Peluquería" },
-  { value: "restaurante", label: "Restaurante" },
-  { value: "gimnasio", label: "Gimnasio" },
-  { value: "salon de eventos", label: "Salón de eventos" },
-  { value: "tatuajes", label: "Tatuajes" },
-  { value: "spa", label: "Spa" },
-  { value: "clinica", label: "Clínica" },
-];
+const categorias = [{ value: "todos", label: "Todos" }, ...categoriasBase];
 
 export default function HomeUser() {
   const [negocios, setNegocios] = useState([]);

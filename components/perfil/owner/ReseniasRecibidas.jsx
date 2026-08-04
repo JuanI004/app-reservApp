@@ -1,4 +1,11 @@
+import { useState } from "react";
+import Paginacion from "../../ui/Paginacion";
+
+const RESEÑAS_POR_PAGINA = 5;
+
 export default function ReseniasRecibidas({ reseñas = [], negocios = [] }) {
+  const [pagina, setPagina] = useState(1);
+
   const negociosMap = negocios.reduce((acc, negocio) => {
     acc[negocio.idNegocio] = negocio.nombre;
     return acc;
@@ -19,6 +26,16 @@ export default function ReseniasRecibidas({ reseñas = [], negocios = [] }) {
     return isNaN(fecha) ? "" : fecha.toLocaleDateString();
   }
 
+  const totalPaginas = Math.max(
+    1,
+    Math.ceil(reseñas.length / RESEÑAS_POR_PAGINA),
+  );
+  const paginaSegura = Math.min(pagina, totalPaginas);
+  const reseñasPagina = reseñas.slice(
+    (paginaSegura - 1) * RESEÑAS_POR_PAGINA,
+    paginaSegura * RESEÑAS_POR_PAGINA,
+  );
+
   return (
     <section className="bg-white rounded-xl w-full overflow-hidden">
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
@@ -33,36 +50,45 @@ export default function ReseniasRecibidas({ reseñas = [], negocios = [] }) {
           Todavía no hay reseñas para tus negocios.
         </div>
       ) : (
-        <div className="px-6 divide-y divide-gray-200">
-          {reseñas.map((reseña) => (
-            <div key={reseña.id} className="py-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-800 truncate">
-                    {reseña.nombreCliente || "Cliente"}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate">
-                    {negociosMap[reseña.idNegocio] || "Negocio desconocido"}
-                  </p>
-                  <div className="flex items-center gap-1 mt-2">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <span
-                        key={i}
-                        className={`text-sm ${i <= (Number(reseña.rating) || 0) ? "text-brand" : "text-gray-300"}`}
-                      >
-                        ★
-                      </span>
-                    ))}
+        <>
+          <div className="px-6 divide-y divide-gray-200">
+            {reseñasPagina.map((reseña) => (
+              <div key={reseña.id} className="py-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-800 truncate">
+                      {reseña.nombreCliente || "Cliente"}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {negociosMap[reseña.idNegocio] || "Negocio desconocido"}
+                    </p>
+                    <div className="flex items-center gap-1 mt-2">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <span
+                          key={i}
+                          className={`text-sm ${i <= (Number(reseña.rating) || 0) ? "text-brand" : "text-gray-300"}`}
+                        >
+                          ★
+                        </span>
+                      ))}
+                    </div>
                   </div>
+                  <p className="text-xs text-gray-400 flex-shrink-0 whitespace-nowrap">
+                    {formatearFechaReseña(reseña.created_at)}
+                  </p>
                 </div>
-                <p className="text-xs text-gray-400 flex-shrink-0 whitespace-nowrap">
-                  {formatearFechaReseña(reseña.created_at)}
+                <p className="text-sm text-gray-700 mt-3">
+                  {reseña.comentario}
                 </p>
               </div>
-              <p className="text-sm text-gray-700 mt-3">{reseña.comentario}</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+          <Paginacion
+            pagina={paginaSegura}
+            totalPaginas={totalPaginas}
+            onCambiar={setPagina}
+          />
+        </>
       )}
     </section>
   );

@@ -1,14 +1,5 @@
 import Label from "./Label";
-
-const categorias = [
-  { value: "peluquería", label: "Peluquería" },
-  { value: "restaurante", label: "Restaurante" },
-  { value: "gimnasio", label: "Gimnasio" },
-  { value: "salon de eventos", label: "Salón de eventos" },
-  { value: "tatuajes", label: "Tatuajes & Piercings" },
-  { value: "spa", label: "Spa" },
-  { value: "clinica", label: "Clínica" },
-];
+import categorias from "../../utils/categorias";
 
 export default function CategoriasPicker({ categoria, setCategoria, error }) {
   return (
@@ -24,7 +15,7 @@ export default function CategoriasPicker({ categoria, setCategoria, error }) {
           Selecciona una categoría
         </option>
         {categorias.map((opt) => (
-          <option className="font-sans" key={opt.value} value={opt.label}>
+          <option className="font-sans" key={opt.value} value={opt.value}>
             {opt.label}
           </option>
         ))}

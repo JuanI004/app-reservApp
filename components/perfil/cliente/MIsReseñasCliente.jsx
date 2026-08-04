@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../lib/supabase";
+import Paginacion from "../../ui/Paginacion";
+
+const RESEÑAS_POR_PAGINA = 5;
 
 export default function MisReseñasCliente({ reseñas = [] }) {
-  console.log("Reseñas recibidas en MisReseñasCliente:", reseñas);
-
   const [negociosMap, setNegociosMap] = useState({});
+  const [pagina, setPagina] = useState(1);
 
   useEffect(() => {
     async function fetchNegocios() {
@@ -48,6 +50,20 @@ export default function MisReseñasCliente({ reseñas = [] }) {
     return isNaN(fecha) ? "" : fecha.toLocaleDateString();
   }
 
+  const totalPaginas = Math.max(
+    1,
+    Math.ceil(reseñas.length / RESEÑAS_POR_PAGINA),
+  );
+  const paginaSegura = Math.min(pagina, totalPaginas);
+  const reseñasPagina = useMemo(
+    () =>
+      reseñas.slice(
+        (paginaSegura - 1) * RESEÑAS_POR_PAGINA,
+        paginaSegura * RESEÑAS_POR_PAGINA,
+      ),
+    [reseñas, paginaSegura],
+  );
+
   return (
     <div className="bg-white border border-gray-200 rounded-xl">
       <div className="flex items-center py-4 px-6 border-b border-gray-200 justify-between">
@@ -56,45 +72,54 @@ export default function MisReseñasCliente({ reseñas = [] }) {
       </div>
 
       {reseñas && reseñas.length > 0 ? (
-        <div className="px-6 divide-y divide-gray-200">
-          {reseñas.map((reseña) => (
-            <div key={reseña.id} className="py-4">
-              <div className="flex items-start justify-between">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-800 truncate">
-                    {negociosMap[reseña.idNegocio] ||
-                      reseña.nombreNegocio ||
-                      reseña.negocio ||
-                      reseña.negocioNombre ||
-                      reseña.nombre ||
-                      reseña.nombreCliente}
-                  </p>
-                  <div className="flex items-center gap-3 mt-2">
-                    <div className="flex items-center">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <span
-                          key={i}
-                          className={`text-sm ${i <= (Number(reseña.rating) || 0) ? "text-brand" : "text-gray-300"}`}
-                        >
-                          ★
-                        </span>
-                      ))}
+        <>
+          <div className="px-6 divide-y divide-gray-200">
+            {reseñasPagina.map((reseña) => (
+              <div key={reseña.id} className="py-4">
+                <div className="flex items-start justify-between">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-800 truncate">
+                      {negociosMap[reseña.idNegocio] ||
+                        reseña.nombreNegocio ||
+                        reseña.negocio ||
+                        reseña.negocioNombre ||
+                        reseña.nombre ||
+                        reseña.nombreCliente}
+                    </p>
+                    <div className="flex items-center gap-3 mt-2">
+                      <div className="flex items-center">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <span
+                            key={i}
+                            className={`text-sm ${i <= (Number(reseña.rating) || 0) ? "text-brand" : "text-gray-300"}`}
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        {formatearFechaReseña(reseña.created_at)}
+                      </p>
                     </div>
-                    <p className="text-xs text-gray-500">
+                  </div>
+                  <div className="flex-shrink-0 text-right pl-4">
+                    <p className="text-xs text-gray-400">
                       {formatearFechaReseña(reseña.created_at)}
                     </p>
                   </div>
                 </div>
-                <div className="flex-shrink-0 text-right pl-4">
-                  <p className="text-xs text-gray-400">
-                    {formatearFechaReseña(reseña.created_at)}
-                  </p>
-                </div>
+                <p className="text-sm text-gray-700 mt-3">
+                  {reseña.comentario}
+                </p>
               </div>
-              <p className="text-sm text-gray-700 mt-3">{reseña.comentario}</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+          <Paginacion
+            pagina={paginaSegura}
+            totalPaginas={totalPaginas}
+            onCambiar={setPagina}
+          />
+        </>
       ) : (
         <p className="text-sm text-gray-500 my-4 mx-5">
           Aún no hay reseñas para este negocio.

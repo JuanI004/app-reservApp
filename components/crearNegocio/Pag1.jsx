@@ -15,16 +15,6 @@ const SelectorUbicacion = dynamic(() => import("../ui/SelectorUbicacion"), {
   ),
 });
 
-const categorias = [
-  { value: "peluqueria", label: "Peluquería" },
-  { value: "restaurante", label: "Restaurante" },
-  { value: "gimnasio", label: "Gimnasio" },
-  { value: "salon de eventos", label: "Salón de eventos" },
-  { value: "tatuajes", label: "Tatuajes & Piercings" },
-  { value: "spa", label: "Spa" },
-  { value: "clinica", label: "Clínica" },
-];
-
 import { useState } from "react";
 
 export default function Pag1({ nextPage, info, setInfo, handlePrev = null }) {

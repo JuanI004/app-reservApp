@@ -5,10 +5,15 @@ import MisTurnosCliente from "./MisTurnosCliente";
 import MisTurnosEmpleado from "./MisTurnosEmpleado";
 import MisReseñasCliente from "./MIsReseñasCliente";
 import Notificaciones from "../../notificaciones/Notificaciones";
+import Paginacion from "../../ui/Paginacion";
 import { useRouter } from "next/navigation";
 import EditarPerfil from "./EditarPerfil";
 
+const FAVORITOS_POR_PAGINA = 5;
+
 export default function PerfilCliente({ session }) {
+  const [cargandoPerfil, setCargandoPerfil] = useState(true);
+  const [paginaFavoritos, setPaginaFavoritos] = useState(1);
   const [userInfo, setUserInfo] = useState(null);
   const [misTurnos, setMisTurnos] = useState([]);
   const [personalTurnos, setPersonalTurnos] = useState({});
@@ -323,13 +328,36 @@ export default function PerfilCliente({ session }) {
       }
     }
 
-    fetchUserInfo();
-    fetchMisTurnos();
-    fetchMisReseñas();
-    fetchMisTurnosEmpleado();
-    fetchMisFavoritos();
-    fetchMisNotificaciones();
+    const cargarDatos = async () => {
+      try {
+        await Promise.all([
+          fetchUserInfo(),
+          fetchMisTurnos(),
+          fetchMisReseñas(),
+          fetchMisTurnosEmpleado(),
+          fetchMisFavoritos(),
+          fetchMisNotificaciones(),
+        ]);
+      } finally {
+        setCargandoPerfil(false);
+      }
+    };
+
+    cargarDatos();
   }, [session]);
+
+  if (cargandoPerfil) {
+    return (
+      <div className="min-h-screen w-full bg-background flex items-center justify-center px-6">
+        <div className="flex flex-col items-center gap-4 rounded-2xl bg-white/80 px-8 py-10 shadow-sm border border-gray-100">
+          <div className="h-14 w-14 rounded-full border-4 border-brand/20 border-t-brand animate-spin" />
+          <p className="text-sm font-medium text-gray-500">
+            Cargando perfil...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   async function handleMarcarNotificacionLeida(id) {
     setMisNotificaciones((prev) =>
@@ -425,6 +453,19 @@ export default function PerfilCliente({ session }) {
       router.push("/");
     }
   }
+
+  const totalPaginasFavoritos = Math.max(
+    1,
+    Math.ceil(misFavoritos.length / FAVORITOS_POR_PAGINA),
+  );
+  const paginaFavoritosSegura = Math.min(
+    paginaFavoritos,
+    totalPaginasFavoritos,
+  );
+  const favoritosPagina = misFavoritos.slice(
+    (paginaFavoritosSegura - 1) * FAVORITOS_POR_PAGINA,
+    paginaFavoritosSegura * FAVORITOS_POR_PAGINA,
+  );
 
   const DATOS = [
     {
@@ -630,7 +671,7 @@ export default function PerfilCliente({ session }) {
                   Todavía no guardaste ningún negocio como favorito.
                 </p>
               ) : (
-                misFavoritos.map((fav) => (
+                favoritosPagina.map((fav) => (
                   <div
                     key={fav.idNegocio}
                     className="px-6 py-4 border-b flex items-center justify-between gap-3 border-gray-200"
@@ -682,6 +723,11 @@ export default function PerfilCliente({ session }) {
                   </div>
                 ))
               )}
+              <Paginacion
+                pagina={paginaFavoritosSegura}
+                totalPaginas={totalPaginasFavoritos}
+                onCambiar={setPaginaFavoritos}
+              />
             </div>
             <Notificaciones
               notificaciones={misNotificaciones}

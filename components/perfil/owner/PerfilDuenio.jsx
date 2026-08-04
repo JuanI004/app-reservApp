@@ -9,6 +9,7 @@ import EditarPerfil from "../cliente/EditarPerfil";
 
 export default function PerfilOwner({ session }) {
   const router = useRouter();
+  const [cargandoPerfil, setCargandoPerfil] = useState(true);
   const [userInfo, setUserInfo] = useState(null);
   const [misNegocios, setMisNegocios] = useState([]);
   const [misTurnos, setMisTurnos] = useState([]);
@@ -125,24 +126,26 @@ export default function PerfilOwner({ session }) {
         setMisNegocios(data);
       }
 
-      data.forEach(async (negocio) => {
-        const { data: turnosNegocio, error } = await supabase
-          .from("Turnos")
-          .select("*")
-          .eq("idNegocio", negocio.idNegocio);
+      await Promise.all(
+        data.map(async (negocio) => {
+          const { data: turnosNegocio, error } = await supabase
+            .from("Turnos")
+            .select("*")
+            .eq("idNegocio", negocio.idNegocio);
 
-        if (error) {
-          console.error("Error fetching turnos:", error);
-        } else if (activo) {
-          setMisTurnos((prevTurnos) => [
-            ...prevTurnos,
-            ...turnosNegocio.map((turno) => ({
-              ...turno,
-              negocioNombre: negocio.nombre,
-            })),
-          ]);
-        }
-      });
+          if (error) {
+            console.error("Error fetching turnos:", error);
+          } else if (activo) {
+            setMisTurnos((prevTurnos) => [
+              ...prevTurnos,
+              ...turnosNegocio.map((turno) => ({
+                ...turno,
+                negocioNombre: negocio.nombre,
+              })),
+            ]);
+          }
+        }),
+      );
 
       const idsNegocios = data.map((negocio) => negocio.idNegocio);
       if (idsNegocios.length === 0) {
@@ -175,16 +178,37 @@ export default function PerfilOwner({ session }) {
       }
     };
 
-    fetchUserInfo();
+    const cargarDatos = async () => {
+      try {
+        await Promise.all([
+          fetchUserInfo(),
+          fetchTurnos(),
+          fetchNotificaciones(),
+        ]);
+      } finally {
+        if (activo) setCargandoPerfil(false);
+      }
+    };
 
-    fetchTurnos();
-
-    fetchNotificaciones();
+    cargarDatos();
 
     return () => {
       activo = false;
     };
   }, [session]);
+
+  if (cargandoPerfil) {
+    return (
+      <div className="min-h-screen w-full bg-background flex items-center justify-center px-6">
+        <div className="flex flex-col items-center gap-4 rounded-2xl bg-white/80 px-8 py-10 shadow-sm border border-gray-100">
+          <div className="h-14 w-14 rounded-full border-4 border-brand/20 border-t-brand animate-spin" />
+          <p className="text-sm font-medium text-gray-500">
+            Cargando perfil...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   async function handleMarcarNotificacionLeida(id) {
     setMisNotificaciones((prev) =>
