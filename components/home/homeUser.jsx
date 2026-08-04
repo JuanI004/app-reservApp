@@ -23,6 +23,7 @@ export default function HomeUser() {
     categoria: "todos",
     orden: "mejorPuntaje",
     busqueda: "",
+    departamento: "Todos",
   });
   const [userId, setUserId] = useState(null);
   const [favoritosSet, setFavoritosSet] = useState(new Set());
@@ -120,6 +121,13 @@ export default function HomeUser() {
         (neg) => neg.categoria === filtroSeleccionado.categoria,
       );
     }
+    if (filtroSeleccionado.departamento !== "Todos") {
+      filtrados = filtrados.filter((neg) =>
+        neg.direccion
+          ?.toLowerCase()
+          .includes(filtroSeleccionado.departamento.toLowerCase()),
+      );
+    }
     if (filtroSeleccionado.busqueda) {
       const busquedaLower = filtroSeleccionado.busqueda.toLowerCase();
       filtrados = filtrados.filter(
@@ -180,7 +188,13 @@ export default function HomeUser() {
           Encontrá tu <span className="text-[#74dfbd]">próximo turno</span>
         </h1>
         <SearchBar
-          ubicacion="Montevideo"
+          departamento={filtroSeleccionado.departamento}
+          onChangeDepartamento={(value) => {
+            setFiltroSeleccionado({
+              ...filtroSeleccionado,
+              departamento: value,
+            });
+          }}
           onClick={(value) => {
             setFiltroSeleccionado({
               ...filtroSeleccionado,
@@ -223,6 +237,26 @@ export default function HomeUser() {
                     setFiltroSeleccionado({
                       ...filtroSeleccionado,
                       busqueda: "",
+                    })
+                  }
+                  className="text-xl mb-0.5 cursor-pointer text-brand hover:text-brand-dark transition-colors"
+                >
+                  x
+                </button>
+              </div>
+            </>
+          )}
+          {filtroSeleccionado.departamento !== "Todos" && (
+            <>
+              <p className="text-sm text-[#666]">|</p>
+              <p className="text-sm text-[#666]">Departamento:</p>
+              <div className="px-2 h-8  flex gap-4 justify-between items-center  rounded-full text-sm border bg-brand/10 text-brand border-brand">
+                <p>{filtroSeleccionado.departamento}</p>
+                <button
+                  onClick={() =>
+                    setFiltroSeleccionado({
+                      ...filtroSeleccionado,
+                      departamento: "Todos",
                     })
                   }
                   className="text-xl mb-0.5 cursor-pointer text-brand hover:text-brand-dark transition-colors"

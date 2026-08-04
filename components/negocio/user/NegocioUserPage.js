@@ -213,32 +213,43 @@ export default function NegocioUserPage({ negocio, session }) {
       .padStart(2, "0")}:${(total % 60).toString().padStart(2, "0")}`;
   };
 
+  const tieneServicios = (negocio?.servicios ?? []).length > 0;
+
   const handleConfirmar = async () => {
-    if (!session || !formData.servicio || !formData.horario || !formData.dia) {
+    if (
+      !session ||
+      (tieneServicios && !formData.servicio) ||
+      !formData.horario ||
+      !formData.dia
+    ) {
       alert("Por favor, completa todos los datos para reservar.");
       return;
     }
-    const servicioObj = negocio.servicios.find(
-      (s) => s.nombre === formData.servicio,
-    );
+    const servicioObj = tieneServicios
+      ? negocio.servicios.find((s) => s.nombre === formData.servicio)
+      : null;
+    const duracion = servicioObj?.duracion || negocio?.tamTurno || 30;
     const { data, error } = await supabase.from("Turnos").insert({
       idNegocio: negocio.idNegocio,
       idEmpleado: formData.idEmpleado || null,
       nombreEmpleado: formData.profesional || null,
       nombreCliente: formData.nombreCliente || null,
       idUsuario: session.user.id,
-      servicio: formData.servicio,
+      servicio: tieneServicios ? formData.servicio : null,
       fecha: formData.fechaDate,
-      duracion: servicioObj?.duracion || 30,
+      duracion,
       horaInicio: formData.horario,
-      horaFin: calcularFin(formData.horario, servicioObj?.duracion || 30),
+      horaFin: calcularFin(formData.horario, duracion),
       estado: "pendiente",
     });
     if (error) {
       console.error("Error al reservar turno:", error.message);
+      const esLimiteDiario = error.message?.includes("LIMITE_TURNOS_DIA");
       setMensaje({
         tipo: "confirmarError",
-        texto: "Error al reservar turno. Intenta de nuevo.",
+        texto: esLimiteDiario
+          ? "Ya reservaste 2 turnos en este negocio hoy. Probá de nuevo mañana."
+          : "Error al reservar turno. Intenta de nuevo.",
       });
     } else {
       setConfirmado(true);
@@ -613,30 +624,37 @@ export default function NegocioUserPage({ negocio, session }) {
               <p className="text-gray-500 uppercase text-xs mb-4">
                 1 · Servicio
               </p>
-              <div className="flex flex-col w-full gap-4">
-                {(negocio?.servicios ?? []).map((servicio) => (
-                  <button
-                    key={servicio.id || servicio.nombre}
-                    onClick={() =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        servicio: servicio.nombre,
-                        precio: servicio.precio,
-                      }))
-                    }
-                    className={`w-full flex cursor-pointer justify-between items-center text-sm text-left px-4 py-2 ${formData.servicio === servicio.nombre ? " bg-brand/10 border-brand" : "bg-background border-gray-300"} border  rounded-xl hover:bg-brand/10 hover:border-brand transition-colors`}
-                  >
-                    <div>
-                      <p>{servicio.nombre} </p>
-                      <p className="text-xs text-gray-500 ">
-                        {servicio.duracion} min
-                      </p>
-                    </div>
+              {tieneServicios ? (
+                <div className="flex flex-col w-full gap-4">
+                  {negocio.servicios.map((servicio) => (
+                    <button
+                      key={servicio.id || servicio.nombre}
+                      onClick={() =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          servicio: servicio.nombre,
+                          precio: servicio.precio,
+                        }))
+                      }
+                      className={`w-full flex cursor-pointer justify-between items-center text-sm text-left px-4 py-2 ${formData.servicio === servicio.nombre ? " bg-brand/10 border-brand" : "bg-background border-gray-300"} border  rounded-xl hover:bg-brand/10 hover:border-brand transition-colors`}
+                    >
+                      <div>
+                        <p>{servicio.nombre} </p>
+                        <p className="text-xs text-gray-500 ">
+                          {servicio.duracion} min
+                        </p>
+                      </div>
 
-                    <p className="text-sm text-brand">${servicio.precio}</p>
-                  </button>
-                ))}
-              </div>
+                      <p className="text-sm text-brand">${servicio.precio}</p>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="w-full text-center text-sm text-gray-500 bg-background border border-gray-200 rounded-xl px-4 py-3">
+                  Este negocio no tiene servicios disponibles. Podés reservar
+                  un turno directamente.
+                </p>
+              )}
               <p className="text-gray-500 uppercase text-xs my-4">
                 2 · Profesional
               </p>
@@ -802,21 +820,26 @@ export default function NegocioUserPage({ negocio, session }) {
                 )}
               </div>
             </div>
-            {formData.servicio &&
+            {(!tieneServicios || (formData.servicio && formData.precio)) &&
               formData.horario &&
-              formData.precio &&
               formData.diaParseada && (
                 <div className="w-full bg-background p-4  border border-gray-200 rounded-b-xl">
-                  <p className="text-sm text-gray-700">
-                    {formData.servicio}{" "}
-                    {formData.profesional && `· ${formData.profesional}`}
-                  </p>
+                  {(formData.servicio || formData.profesional) && (
+                    <p className="text-sm text-gray-700">
+                      {formData.servicio}{" "}
+                      {formData.profesional && `· ${formData.profesional}`}
+                    </p>
+                  )}
 
                   <div className="flex justify-between">
                     <p className="text-sm text-gray-700">
                       {formData.diaParseada} {formData.horario}
                     </p>
-                    <p className="text-sm text-black">${formData.precio}</p>
+                    {tieneServicios && (
+                      <p className="text-sm text-black">
+                        ${formData.precio}
+                      </p>
+                    )}
                   </div>
                   {mensaje.texto && (
                     <p

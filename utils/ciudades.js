@@ -232,4 +232,8 @@ const ciudades = [
   "Treinta y Tres — Santa Clara de Olimar",
 ];
 
+export const departamentos = [
+  ...new Set(ciudades.map((c) => c.split(" — ")[0])),
+];
+
 export default ciudades;
