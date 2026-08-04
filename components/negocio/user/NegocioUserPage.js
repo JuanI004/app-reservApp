@@ -699,7 +699,7 @@ export default function NegocioUserPage({ negocio, session }) {
                 ))}
               </div>
               <p className="text-gray-500 uppercase text-xs my-4">3 · Fecha</p>
-              <div className="flex  gap-1">
+              <div className="flex flex-wrap items-center justify-center max-w-[300px] gap-1">
                 {weekDates.map((dateObj, idx) => {
                   const diaNumero = idx + 1; // 1=Lunes .. 7=Domingo (coincide con Pag2)
                   const horario = negocio?.horarios?.find(

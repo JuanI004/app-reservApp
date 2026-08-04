@@ -96,7 +96,7 @@ export default function MisReseñasCliente({ reseñas = [] }) {
           ))}
         </div>
       ) : (
-        <p className="text-sm text-gray-500 mt-4">
+        <p className="text-sm text-gray-500 my-4 mx-5">
           Aún no hay reseñas para este negocio.
         </p>
       )}

@@ -5,6 +5,9 @@ import {
   parseTurnoDateTime,
   getEstadoBadgeClass,
 } from "../../../lib/turnos";
+import Paginacion from "../../ui/Paginacion";
+
+const TURNOS_POR_PAGINA = 5;
 
 export default function MisTurnosCliente({
   turnos = [],
@@ -12,6 +15,7 @@ export default function MisTurnosCliente({
   negociosTurnos = {},
 }) {
   const [filtro, setFiltro] = useState("Todos");
+  const [pagina, setPagina] = useState(1);
 
   const turnosOrdenados = useMemo(() => {
     return [...turnos].sort(
@@ -59,6 +63,16 @@ export default function MisTurnosCliente({
     filtros[filtro] ?? filtros.Todos,
   );
 
+  const totalPaginas = Math.max(
+    1,
+    Math.ceil(turnosFiltrados.length / TURNOS_POR_PAGINA),
+  );
+  const paginaSegura = Math.min(pagina, totalPaginas);
+  const turnosPagina = turnosFiltrados.slice(
+    (paginaSegura - 1) * TURNOS_POR_PAGINA,
+    paginaSegura * TURNOS_POR_PAGINA,
+  );
+
   return (
     <section className="bg-white rounded-xl w-full overflow-hidden">
       <h2 className="flex items-center text-lg font-display font-bold text-gray-900 px-6 py-4 border-b border-gray-200">
@@ -69,7 +83,10 @@ export default function MisTurnosCliente({
           {tabs.map((tab) => (
             <button
               key={tab.label}
-              onClick={() => setFiltro(tab.label)}
+              onClick={() => {
+                setFiltro(tab.label);
+                setPagina(1);
+              }}
               className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded-full transition-colors cursor-pointer ${
                 filtro === tab.label
                   ? "bg-white text-brand shadow-sm border border-gray-200"
@@ -93,7 +110,7 @@ export default function MisTurnosCliente({
             No hay turnos para este filtro.
           </div>
         ) : (
-          turnosFiltrados.map((turno) => {
+          turnosPagina.map((turno) => {
             const fechaTurno = parseTurnoDateTime(turno);
             const day = Number.isNaN(fechaTurno.getTime())
               ? "-"
@@ -168,6 +185,11 @@ export default function MisTurnosCliente({
           })
         )}
       </div>
+      <Paginacion
+        pagina={paginaSegura}
+        totalPaginas={totalPaginas}
+        onCambiar={setPagina}
+      />
     </section>
   );
 }
