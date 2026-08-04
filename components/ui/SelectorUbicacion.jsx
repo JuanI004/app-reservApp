@@ -31,7 +31,7 @@ export default function SelectorUbicacion({ lat, lng, onSelect }) {
   const posicion = hayUbicacion ? { lat, lng } : MONTEVIDEO;
 
   return (
-    <div className="rounded-xl overflow-hidden border border-gray-300">
+    <div className="relative z-0 rounded-xl overflow-hidden border border-gray-300">
       <MapContainer
         center={posicion}
         zoom={hayUbicacion ? 16 : 12}

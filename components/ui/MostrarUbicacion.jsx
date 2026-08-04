@@ -19,21 +19,23 @@ export default function MostrarUbicacion({ lat, lng }) {
   const posicion = { lat, lng };
 
   return (
-    <MapContainer
-      center={posicion}
-      zoom={16}
-      style={{ height: 160, width: "100%" }}
-      dragging={false}
-      scrollWheelZoom={false}
-      doubleClickZoom={false}
-      touchZoom={false}
-      zoomControl={false}
-    >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution="&copy; OpenStreetMap contributors"
-      />
-      <Marker position={posicion} icon={icono} />
-    </MapContainer>
+    <div className="relative z-0">
+      <MapContainer
+        center={posicion}
+        zoom={16}
+        style={{ height: 160, width: "100%" }}
+        dragging={false}
+        scrollWheelZoom={false}
+        doubleClickZoom={false}
+        touchZoom={false}
+        zoomControl={false}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution="&copy; OpenStreetMap contributors"
+        />
+        <Marker position={posicion} icon={icono} />
+      </MapContainer>
+    </div>
   );
 }

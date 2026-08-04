@@ -5,11 +5,14 @@ import { supabase } from "../../../lib/supabase";
 import { estaNegocioAbierto } from "../../../lib/turnos";
 import EscribirResenia from "../../ui/EscribirResenia";
 import BotonFavorito from "../../ui/BotonFavorito";
+import Paginacion from "../../ui/Paginacion";
 
 const MostrarUbicacion = dynamic(() => import("../../ui/MostrarUbicacion"), {
   ssr: false,
   loading: () => <div className="h-40 w-full bg-[#f3f2f1] animate-pulse" />,
 });
+
+const RESEÑAS_POR_PAGINA = 5;
 
 const reseñas = [
   {
@@ -46,6 +49,7 @@ export default function NegocioUserPage({ negocio, session }) {
   const [confirmado, setConfirmado] = useState(false);
   const [selectedDia, setSelectedDia] = useState();
   const [esFavorito, setEsFavorito] = useState(false);
+  const [paginaReseñas, setPaginaReseñas] = useState(1);
   const [formData, setFormData] = useState({
     servicio: null,
     profesional: null,
@@ -77,8 +81,7 @@ export default function NegocioUserPage({ negocio, session }) {
         .from("Reseñas")
         .select("*")
         .eq("idNegocio", negocio?.idNegocio)
-        .order("created_at", { ascending: false })
-        .limit(5);
+        .order("created_at", { ascending: false });
       if (error) {
         console.error("Error trayendo reseñas:", error.message);
       } else {
@@ -459,6 +462,17 @@ export default function NegocioUserPage({ negocio, session }) {
     ? weekDatesActuales
     : getWeekDates(1);
 
+  const reseñas = negocioInfo?.reseñas ?? [];
+  const totalPaginasReseñas = Math.max(
+    1,
+    Math.ceil(reseñas.length / RESEÑAS_POR_PAGINA),
+  );
+  const paginaReseñasSegura = Math.min(paginaReseñas, totalPaginasReseñas);
+  const reseñasPagina = reseñas.slice(
+    (paginaReseñasSegura - 1) * RESEÑAS_POR_PAGINA,
+    paginaReseñasSegura * RESEÑAS_POR_PAGINA,
+  );
+
   return (
     <>
       {negocio?.banner_url ? (
@@ -477,7 +491,7 @@ export default function NegocioUserPage({ negocio, session }) {
         </span>
       )}
 
-      <div className="relative max-w-[820px] w-full mx-auto ">
+      <div className="relative max-w-[820px] w-full mx-auto pb-16">
         {negocio?.image_url ? (
           <Image
             src={negocio.image_url}
@@ -636,9 +650,9 @@ export default function NegocioUserPage({ negocio, session }) {
                   usuarioInfo={session?.user}
                 />
               </div>
-              {negocioInfo?.reseñas ? (
+              {negocioInfo?.reseñas?.length ? (
                 <div className="mt-4 flex flex-col gap-4">
-                  {negocioInfo?.reseñas?.map((reseña) => (
+                  {reseñasPagina.map((reseña) => (
                     <div
                       key={reseña.id}
                       className="border border-gray-200 rounded-xl p-4"
@@ -677,6 +691,11 @@ export default function NegocioUserPage({ negocio, session }) {
                   Aún no hay reseñas para este negocio.
                 </p>
               )}
+              <Paginacion
+                pagina={paginaReseñasSegura}
+                totalPaginas={totalPaginasReseñas}
+                onCambiar={setPaginaReseñas}
+              />
             </div>
           </section>
           <section>
