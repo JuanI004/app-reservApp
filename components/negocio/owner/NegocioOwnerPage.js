@@ -54,6 +54,44 @@ export default function NegocioOwnerPage({ negocio, session }) {
     setModalIsOpen({ activo: true, modo: "horarios" });
   }
 
+  async function handleConfirmarTurno(idTurno) {
+    const prev = turnos;
+    setTurnos((prevTurnos) =>
+      prevTurnos.map((t) =>
+        t.idTurno === idTurno ? { ...t, estado: "confirmado" } : t,
+      ),
+    );
+
+    const { error } = await supabase
+      .from("Turnos")
+      .update({ estado: "confirmado" })
+      .eq("idTurno", idTurno);
+
+    if (error) {
+      console.error("Error confirmando turno:", error.message);
+      setTurnos(prev);
+    }
+  }
+
+  async function handleCancelarTurno(idTurno) {
+    const prev = turnos;
+    setTurnos((prevTurnos) =>
+      prevTurnos.map((t) =>
+        t.idTurno === idTurno ? { ...t, estado: "cancelado" } : t,
+      ),
+    );
+
+    const { error } = await supabase
+      .from("Turnos")
+      .update({ estado: "cancelado" })
+      .eq("idTurno", idTurno);
+
+    if (error) {
+      console.error("Error cancelando turno:", error.message);
+      setTurnos(prev);
+    }
+  }
+
   useEffect(() => {
     if (!negocio) {
       return;
@@ -281,7 +319,12 @@ export default function NegocioOwnerPage({ negocio, session }) {
           />
         )}
         {seccionSeleccionada === "calendario" && (
-          <CalendarioSem turnos={turnos} negocio={negocio} />
+          <CalendarioSem
+            turnos={turnos}
+            negocio={negocio}
+            onConfirmar={handleConfirmarTurno}
+            onCancelar={handleCancelarTurno}
+          />
         )}
         {seccionSeleccionada === "estadisticas" && (
           <Estadisticas

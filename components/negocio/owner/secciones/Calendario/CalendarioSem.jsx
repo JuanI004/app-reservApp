@@ -1,6 +1,11 @@
 import Calendario from "./Calendario";
 
-export default function CalendarioSem({ turnos = [], negocio }) {
+export default function CalendarioSem({
+  turnos = [],
+  negocio,
+  onConfirmar,
+  onCancelar,
+}) {
   const parseLocalDate = (dateStr) => {
     if (!dateStr) return new Date(dateStr);
     const isoDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
@@ -146,7 +151,12 @@ export default function CalendarioSem({ turnos = [], negocio }) {
           </div>
         ))}
       </section>
-      <Calendario turnos={turnosSemana} negocio={negocio} />
+      <Calendario
+        turnos={turnosSemana}
+        negocio={negocio}
+        onConfirmar={onConfirmar}
+        onCancelar={onCancelar}
+      />
     </>
   );
 }
