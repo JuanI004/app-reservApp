@@ -165,6 +165,31 @@ export default function MainPage() {
           ))}
         </div>
       </section>
+      <section className="mt-15 mb-10 w-full flex justify-center">
+        <div className="relative w-full max-w-[920px] overflow-hidden rounded-3xl border border-brand/15 bg-gradient-to-br from-brand-pale via-white to-white px-8 py-16 sm:px-16 sm:py-20">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -top-24 -right-16 w-72 h-72 rounded-full bg-brand/10 blur-3xl"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-24 -left-16 w-72 h-72 rounded-full bg-accent/10 blur-3xl"
+          />
+
+          <div className="relative flex flex-col items-center gap-4 text-center mx-auto">
+            <h2 className="text-brand-light font-medium tracking-widest uppercase">
+              Empezá hoy
+            </h2>
+            <h1 className="text-black text-[2rem] sm:text-[2.4rem] font-display font-[800] leading-tight max-w-[520px]">
+              ¿Listo para dejar de perder turnos?
+            </h1>
+            <p className="text-gray-600 text-lg max-w-[440px]">
+              Sumate gratis y empezá a recibir reservas hoy mismo. Sin tarjeta,
+              sin complicaciones.
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

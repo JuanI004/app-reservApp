@@ -10,6 +10,7 @@ import { Label } from "../../components/ui/Label";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const router = useRouter();
   const [mensaje, setMensaje] = useState({});
   const [formData, setFormData] = useState({
@@ -23,7 +24,9 @@ const Auth = () => {
     supabase.auth.getSession().then(({ data, error }) => {
       if (error || data.session) {
         router.push("/");
+        return;
       }
+      setCheckingSession(false);
     });
   }, [router]);
   function validarForm() {
@@ -92,6 +95,14 @@ const Auth = () => {
       setMensaje({ exito: "¡Sesión iniciada! Bienvenido de nuevo." });
       router.push("/Home");
     }
+  }
+
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-brand/20 border-t-brand" />
+      </div>
+    );
   }
 
   return (

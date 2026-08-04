@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
@@ -8,6 +9,8 @@ import Label from "../../components/ui/Label";
 import { supabase } from "../../lib/supabase";
 
 const Auth = () => {
+  const router = useRouter();
+  const [checkingSession, setCheckingSession] = useState(true);
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState({});
@@ -19,6 +22,16 @@ const Auth = () => {
     phone: "",
     rol: "",
   });
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (error || data.session) {
+        router.push("/");
+        return;
+      }
+      setCheckingSession(false);
+    });
+  }, [router]);
 
   function validarForm() {
     const newErrores = {};
@@ -87,6 +100,14 @@ const Auth = () => {
 
     setLoading(false);
   };
+
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-brand/20 border-t-brand" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pt-[76px] bg-background flex items-center justify-center bg-secondary/30">
